@@ -1,0 +1,9 @@
+{
+  "name":"battlezone3d-online",
+  "version":"1.0.0",
+  "private":true,
+  "description":"Servidor multiplayer em tempo real do BattleZone 3D",
+  "main":"server.js",
+  "scripts":{"start":"node server.js"},
+  "dependencies":{"ws":"^8.18.0"}
+}

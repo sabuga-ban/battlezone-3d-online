@@ -1,0 +1,1719 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>BattleZone 3D</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080b12;color:#fff;font-family:Arial,sans-serif}button{font:inherit;border:0;cursor:pointer;color:#fff}.hidden{display:none!important}
+#app,.screen{position:fixed;inset:0}#lobby{background:linear-gradient(#101826,#070a10)}.top{height:76px;display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:#05080de8;position:relative;z-index:4}.brand{font-weight:900;font-size:23px}.brand span{color:#ffb000}.resources{display:flex;gap:7px}.res{background:#171e2a;border:1px solid #303a49;padding:9px 11px;border-radius:12px;font-weight:800}
+#lobby3d{position:absolute;inset:76px 0 82px}.bottom{position:absolute;bottom:0;left:0;right:0;height:82px;display:flex;gap:5px;justify-content:space-around;align-items:center;background:#05080df5;z-index:5}.nav{background:#151b25;border:1px solid #303a49;border-radius:13px;padding:9px 7px;min-width:68px}.nav b{display:block;font-size:10px;margin-top:3px}.play{position:absolute;bottom:98px;left:50%;transform:translateX(-50%);z-index:6;background:#ff9f00;color:#111;font-size:19px;font-weight:900;padding:14px 44px;border-radius:16px}
+.panel{position:absolute;inset:7% 4%;z-index:20;background:#0d131d;border:1px solid #394658;border-radius:18px;padding:18px;overflow:auto;box-shadow:0 20px 70px #000b}.panel h2{margin:0 0 14px}.close{float:right;background:#252d3a;padding:8px 12px;border-radius:10px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}.card{background:#151d28;border:1px solid #2d3949;border-radius:13px;padding:13px}.card button{margin-top:10px;background:#ff9f00;color:#111;border-radius:9px;padding:8px;width:100%;font-weight:800}.bar{height:10px;background:#252e3b;border-radius:20px;overflow:hidden}.bar i{display:block;height:100%;background:#ff9f00}
+.mode{display:flex;align-items:center;justify-content:space-between;background:#151d28;border:1px solid #2d3949;border-radius:12px;padding:14px;margin:8px 0}.mode button{background:#ff9f00;color:#111;padding:9px 13px;border-radius:9px;font-weight:800}
+#game{background:#0a0d12}.hud{position:absolute;inset:0;pointer-events:none;z-index:10}.hud>*{pointer-events:auto}.gameTop{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between}.status{background:#101722dd;padding:9px 12px;border-radius:12px}.cross{position:absolute;left:50%;top:50%;width:25px;height:25px;transform:translate(-50%,-50%)}.cross:before,.cross:after{content:"";position:absolute;background:#fff}.cross:before{width:25px;height:2px;top:12px}.cross:after{height:25px;width:2px;left:12px}.joystick{position:absolute;left:22px;bottom:25px;width:125px;height:125px;z-index:20;border-radius:50%;background:#ffffff12;border:2px solid #ffffff30;pointer-events:auto;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}.stick{position:absolute;width:58px;height:58px;border-radius:50%;background:#ffffff35;border:2px solid #ffffff55;left:31px;top:31px;pointer-events:none}.lookZone{position:absolute;right:0;top:0;width:58%;height:100%;z-index:1;touch-action:none}.actions{position:absolute;right:18px;bottom:22px;display:grid;grid-template-columns:repeat(2,72px);gap:9px;z-index:5}.act.active{transform:scale(.94);filter:brightness(1.3)}.usebar{position:absolute;left:50%;bottom:92px;transform:translateX(-50%);width:190px;height:12px;background:#202936;border-radius:20px;overflow:hidden;z-index:6;display:none}.usebar i{display:block;height:100%;width:0;background:#ffb000}.mobileHint{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);font-size:10px;opacity:.55;z-index:2}.cross.ads:before,.cross.ads:after{background:#ffb000}.act{width:72px;height:58px;border-radius:16px;background:#101722dd;border:1px solid #ffffff33;font-weight:900;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}.act:active{filter:brightness(1.2)}.shoot{background:#e63939cc}.aim{background:#4d79ffbb}#toast{position:fixed;left:50%;top:84px;transform:translateX(-50%);z-index:50;background:#111a26;border:1px solid #4b5c70;padding:10px 16px;border-radius:10px;opacity:0;transition:.2s}
+@media(max-width:600px){.nav{min-width:52px;padding:8px 4px;font-size:11px}.nav b{font-size:8px}.res{padding:7px 8px;font-size:12px}.panel{inset:4% 3%}.play{bottom:94px}}
+
+<style id="lobby-menu-upgrade">
+/* Lobby/menu renovado sem alterar o HUD de combate. */
+.lobbyHero{position:absolute;left:18px;top:96px;z-index:4;width:min(360px,48vw);pointer-events:none}
+.lobbyEyebrow{font-size:10px;letter-spacing:.16em;color:#ffbd43;font-weight:900;text-transform:uppercase}
+.lobbyTitle{font-size:clamp(25px,4vw,44px);font-weight:1000;line-height:.95;margin:5px 0 8px;text-shadow:0 5px 20px #000}
+.lobbySub{font-size:12px;color:#c0ccd9;line-height:1.45;max-width:330px}
+.lobbyStats{display:flex;gap:7px;margin-top:12px;pointer-events:auto}
+.lobbyStat{background:#0b111bdd;border:1px solid #39495d;border-radius:11px;padding:8px 10px;min-width:78px;backdrop-filter:blur(8px)}
+.lobbyStat b{display:block;font-size:15px}.lobbyStat span{font-size:9px;color:#9eacbc;text-transform:uppercase}
+.lobbyCards{position:absolute;right:18px;top:96px;z-index:4;width:min(285px,34vw);display:grid;gap:8px}
+.lobbyCard{background:#0b111ddd;border:1px solid #354457;border-radius:13px;padding:11px;backdrop-filter:blur(9px);box-shadow:0 10px 35px #0005}
+.lobbyCard b{font-size:12px}.lobbyCard small{display:block;color:#9eacbc;margin-top:4px;line-height:1.3}
+.lobbyProgress{height:7px;background:#232d3a;border-radius:99px;overflow:hidden;margin-top:8px}.lobbyProgress i{display:block;height:100%;width:72%;background:#ff9f00}
+.lobbyQuick{display:flex;gap:6px;margin-top:8px;pointer-events:auto}.lobbyQuick button{flex:1;background:#202b39;border:1px solid #405064;border-radius:8px;padding:7px;font-size:10px;font-weight:900}
+.modeHeader{color:#9eacbc;font-size:11px;margin:-6px 0 13px}.modeGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.modeCard{background:#151d28;border:1px solid #334154;border-radius:14px;padding:14px;min-height:145px;display:flex;flex-direction:column}.modeCard .modeIcon{font-size:28px}.modeCard h3{margin:7px 0 4px;font-size:15px}.modeCard p{font-size:10px;color:#9eacbc;line-height:1.35;margin:0;flex:1}.modeCard button{background:#ff9f00;color:#111;border-radius:9px;padding:9px;font-weight:900;margin-top:10px}
+.menuSection{grid-column:1/-1;color:#ffbd43;font-size:11px;letter-spacing:.08em;font-weight:900;text-transform:uppercase;margin:5px 0 0}.menuFeature{background:linear-gradient(135deg,#151f2d,#101722);border:1px solid #3a4a5e;border-radius:14px;padding:14px;grid-column:1/-1}.menuFeature h3{margin:0 0 6px}.menuFeature p{margin:0;color:#aebaca;font-size:11px;line-height:1.45}
+@media(max-width:700px){.lobbyHero{left:12px;top:88px;width:55vw}.lobbyCards{right:10px;top:auto;bottom:104px;width:43vw}.lobbyCard:nth-child(2){display:none}.lobbyTitle{font-size:27px}.lobbySub{font-size:10px}.lobbyStats{display:none}.modeGrid{grid-template-columns:1fr}.modeCard{min-height:110px}.lobbyQuick button{font-size:9px;padding:6px}}
+@media(max-width:430px){.lobbyHero{width:58vw}.lobbyCards{width:40vw}.lobbySub{display:none}.lobbyCard{padding:8px}.lobbyCard b{font-size:10px}.lobbyCard small{font-size:8px}.play{padding:13px 36px}}
+</style>
+<style id="lobby-menu-complete">
+.lobbyCommand{position:absolute;left:50%;top:88px;transform:translateX(-50%);z-index:5;width:min(620px,62vw);background:rgba(7,12,19,.82);border:1px solid #3a4a5e;border-radius:18px;padding:13px;backdrop-filter:blur(10px);box-shadow:0 18px 55px #0007}
+.lobbyCommandTitle{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}.lobbyCommandTitle b{font-size:15px}.lobbyCommandTitle span{font-size:10px;color:#9eacbc}
+.lobbyMenuGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.lobbyMenuBtn{min-height:58px;background:#151e2a;border:1px solid #334154;border-radius:12px;color:#fff;text-align:left;padding:8px;cursor:pointer}.lobbyMenuBtn strong{display:block;font-size:11px}.lobbyMenuBtn small{display:block;color:#8f9dad;font-size:8px;margin-top:3px}.lobbyMenuBtn:hover,.lobbyMenuBtn:active{border-color:#ffb000;background:#202b39;transform:translateY(-1px)}
+.lobbyNews{position:absolute;left:18px;bottom:105px;width:min(300px,30vw);z-index:4;background:rgba(7,12,19,.86);border:1px solid #334154;border-radius:14px;padding:11px;backdrop-filter:blur(8px)}.lobbyNews b{font-size:11px}.lobbyNews p{margin:5px 0 0;color:#aebaca;font-size:9px;line-height:1.35}.lobbyNews .newsTag{display:inline-block;margin-top:7px;padding:4px 7px;border-radius:7px;background:#ff9f00;color:#111;font-size:8px;font-weight:900}
+.lobbyModesQuick{display:flex;gap:6px;margin-top:9px}.lobbyModesQuick button{flex:1;background:#ff9f00;color:#111;border:0;border-radius:9px;padding:8px;font-size:9px;font-weight:900}
+.modeCard.featured{border-color:#ffb000;box-shadow:0 0 0 1px #ffb00022 inset}.modeDetails{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}.modePill{font-size:8px;padding:4px 6px;border-radius:6px;background:#202b39;color:#b9c5d3}
+@media(max-width:700px){.lobbyCommand{top:78px;width:94vw;padding:9px}.lobbyMenuGrid{grid-template-columns:repeat(4,1fr);gap:5px}.lobbyMenuBtn{min-height:50px;padding:6px}.lobbyMenuBtn strong{font-size:9px}.lobbyMenuBtn small{font-size:7px}.lobbyNews{display:none}.lobbyCards{bottom:104px}.lobbyModesQuick button{font-size:8px;padding:7px}}
+@media(max-width:430px){.lobbyCommand{top:76px}.lobbyMenuGrid{grid-template-columns:repeat(2,1fr)}.lobbyMenuBtn{min-height:47px}.lobbyHero{top:225px}.lobbyCards{bottom:104px}.lobbyCards .lobbyCard:first-child{display:none}}
+</style>
+<style id="expanded-ui">
+.sectionTitle{grid-column:1/-1;font-size:12px;letter-spacing:.08em;color:#ffbd43;margin:7px 2px 0;text-transform:uppercase}
+.itemMeta{margin-top:7px;font-size:11px;color:#9eacbc;line-height:1.35}
+.tag{display:inline-block;padding:3px 6px;border-radius:7px;background:#202b39;margin:3px 3px 0 0;font-size:10px}
+.card.equipped{border-color:#ffb000;box-shadow:0 0 0 1px #ffb00033 inset}
+.card.owned{border-color:#3d8d62}
+.card button.secondary{background:#263343;color:#fff}
+.empty{grid-column:1/-1;text-align:center;padding:24px;color:#93a1b2}
+
+/* ---------- FULLSCREEN / HTML EDITOR COMPATIBILITY ---------- */
+#fullscreenBtn{position:fixed;right:12px;top:12px;z-index:2147483647;background:#151d28ee;border:1px solid #3a4658;color:#fff;border-radius:12px;padding:9px 12px;font-weight:900;box-shadow:0 5px 18px #0008;backdrop-filter:blur(6px);touch-action:manipulation}
+#fullscreenBtn:active{transform:scale(.96)}
+:fullscreen{background:#000!important}
+:fullscreen #app{width:100vw;height:100vh}
+/* Fallback usado quando o HTML está dentro de um editor/iframe sem permissão de fullscreen. */
+html.editor-fs,html.editor-fs body{width:100%!important;height:100%!important;height:100dvh!important;margin:0!important;overflow:hidden!important}
+body.editor-fs{position:fixed!important;inset:0!important}
+body.editor-fs #app{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;max-width:none!important;max-height:none!important;overflow:hidden!important}
+body.editor-fs #fullscreenBtn{background:#ff9f00;color:#111}
+@media(max-width:600px){#fullscreenBtn{top:8px;right:8px;padding:8px 10px;font-size:13px}}
+</style>
+</style>
+<style id="purchase-all-menus">
+.card button:disabled{opacity:1;cursor:default}
+.card button.secondary{background:#263343;color:#fff}
+</style>
+
+<style id="organized-subtabs">
+.subtabs{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 14px;padding:2px 0 10px;border-bottom:1px solid #2d3949}
+.subtab{background:#151d28;border:1px solid #303d4f;color:#dce5ef;border-radius:10px;padding:8px 11px;font-weight:800;font-size:12px}
+.subtab.active{background:#ff9f00;color:#111;border-color:#ffb52e}
+</style>
+<style id="complete-upgrade-css">
+:root{--accent:#ff9f00;--panel:#0c121c;--panel2:#151e2a;--line:#344254}
+.miniBtn,.miniBtn:active{transform:scale(.96)}
+.fullOverlay{position:fixed;inset:0;z-index:80;background:#070b12ee;display:flex;align-items:center;justify-content:center;padding:18px}.fullCard{width:min(760px,96vw);max-height:92vh;overflow:auto;background:#0e1621;border:1px solid #3a485b;border-radius:18px;padding:18px;box-shadow:0 25px 100px #000}.fullCard h2{margin:0 0 14px}.twoCol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.statBox{background:#151e2a;border:1px solid #2f3c4d;border-radius:12px;padding:12px}.statBox b{font-size:20px}.listRow{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#151e2a;border:1px solid #2f3c4d;border-radius:11px;padding:10px;margin:7px 0}.primaryBtn{background:#ff9f00;color:#111;border-radius:10px;padding:10px 13px;font-weight:900}.dangerBtn{background:#d63d45;border-radius:10px;padding:10px 13px;font-weight:900}.muted{color:#9eacbc;font-size:12px}.sectionTabs{display:flex;gap:6px;overflow:auto;margin-bottom:12px}.sectionTabs button{white-space:nowrap;background:#151e2a;border:1px solid #334154;border-radius:9px;padding:8px 10px;font-weight:800}.sectionTabs button.active{background:#ff9f00;color:#111}.progress{height:9px;background:#232d3a;border-radius:99px;overflow:hidden}.progress i{display:block;height:100%;background:#ff9f00}.killfeed{position:absolute;right:12px;top:75px;display:flex;flex-direction:column;gap:5px;align-items:flex-end;z-index:12}.feed{background:#101722dd;border:1px solid #ffffff18;border-radius:8px;padding:6px 9px;font-size:11px}.objective{position:absolute;left:50%;top:64px;transform:translateX(-50%);background:#101722dd;border:1px solid #ffffff18;border-radius:10px;padding:7px 12px;font-size:11px;z-index:11;text-align:center}.minimap{position:absolute;left:12px;top:72px;width:120px;height:120px;border-radius:50%;background:#101722cc;border:2px solid #ffffff33;overflow:hidden;z-index:11}.miniDot{position:absolute;width:7px;height:7px;border-radius:50%;transform:translate(-50%,-50%)}.miniPlayer{background:#fff}.miniEnemy{background:#e33}.miniLoot{background:#ffb000}.weatherTag{position:absolute;left:12px;bottom:162px;background:#101722aa;padding:6px 9px;border-radius:8px;font-size:10px;z-index:8}.weaponHud{position:absolute;right:16px;bottom:155px;background:#101722dd;padding:8px 11px;border-radius:10px;text-align:right;z-index:8}.weaponHud b{font-size:16px}.knock{position:absolute;inset:0;z-index:30;display:none;align-items:center;justify-content:center;background:#16060966}.knockBox{background:#0e141eeb;border:1px solid #a33;border-radius:16px;padding:20px;text-align:center}.damageFlash{position:absolute;inset:0;background:#f00;opacity:0;pointer-events:none;z-index:15;transition:opacity .1s}.lootPrompt{position:absolute;left:50%;bottom:165px;transform:translateX(-50%);background:#111a26ee;border:1px solid #ffb00055;border-radius:10px;padding:8px 12px;z-index:15;display:none}.postGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.rarity{font-size:10px;text-transform:uppercase;color:#ffbd43;margin-top:5px}
+@media(max-width:600px){
+  .twoCol{grid-template-columns:1fr}
+  .minimap{width:95px;height:95px}
+  .weaponHud{bottom:145px}
+  .objective{top:55px}
+  #uzTopMenu .uz-menuBtn{
+    flex:1 1 calc(25% - 5px);
+    min-width:0;
+    padding:8px 4px;
+    font-size:9.5px;
+  }
+  .postGrid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+<style id="ultimate-css">
+.uz-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}.uz-badge{background:#202b39;border:1px solid #334154;border-radius:7px;padding:4px 7px;font-size:10px}.uz-good{border-color:#39865d}.uz-danger{border-color:#a43f46}.uz-grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.uz-action{background:#151e2a;border:1px solid #334154;border-radius:11px;padding:10px;text-align:left}.uz-action b{display:block}.uz-action small{color:#9eacbc}.uz-table{width:100%;border-collapse:collapse;font-size:12px}.uz-table th,.uz-table td{padding:8px;border-bottom:1px solid #2d3949;text-align:left}.uz-chip{display:inline-block;padding:4px 7px;border-radius:7px;background:#202b39;margin:2px;font-size:10px}.uz-team{color:#63e6a0}.uz-enemy{color:#ff7373}.uz-zone{position:absolute;left:50%;top:50%;width:220px;height:220px;transform:translate(-50%,-50%);border:3px solid #5ec8ff88;border-radius:50%;box-shadow:0 0 35px #5ec8ff33 inset,0 0 25px #5ec8ff22;pointer-events:none;z-index:2;display:none}.uz-round{position:absolute;top:105px;left:50%;transform:translateX(-50%);background:#101722dd;border:1px solid #ffffff22;border-radius:10px;padding:6px 10px;font-size:11px;z-index:12;display:none}.uz-weatherfx{position:absolute;inset:0;pointer-events:none;z-index:3;opacity:.0}.uz-score{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:#101722dd;border:1px solid #ffffff22;border-radius:10px;padding:7px 11px;font-weight:900;z-index:12;display:none}.uz-event{position:absolute;left:50%;top:25%;transform:translate(-50%,-50%);background:#101722ee;border:1px solid #ffb00066;border-radius:14px;padding:12px 18px;font-size:16px;font-weight:900;z-index:25;display:none}.uz-crosshairHint{position:absolute;left:50%;bottom:55px;transform:translateX(-50%);font-size:10px;color:#d9e5ef;background:#101722aa;border-radius:8px;padding:5px 8px;z-index:9}.uz-menuBtn{background:#151d28;border:1px solid #334154;border-radius:10px;padding:8px 10px;font-weight:800;font-size:11px}.uz-socialOnline{color:#61e7a0}.uz-rank{color:#8fc9ff}.uz-small{font-size:10px;color:#9eacbc}
+@media(max-width:600px){.uz-grid4{grid-template-columns:repeat(2,1fr)}.uz-crosshairHint{bottom:8px}.uz-score{top:46px}}
+</style>
+
+<style id="all-buttons-bottom-fix">
+#uzTopMenu{display:none!important}
+.bottomMenuBtn{
+  appearance:none;
+  background:#151d28;
+  border:1px solid #334154;
+  border-radius:12px;
+  color:#eef4fb;
+  font-weight:800;
+  font-size:10px;
+  min-height:68px;
+  padding:7px 5px;
+  cursor:pointer;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  flex:1 1 82px;
+  min-width:70px;
+}
+.bottomMenuBtn:active{transform:scale(.96)}
+@media(max-width:600px){
+  .bottomMenuBtn{
+    flex:1 1 calc(25% - 6px);
+    min-width:0;
+    min-height:64px;
+    font-size:9px;
+  }
+}
+</style>
+
+
+<style id="horizontal-bottom-scroll-fix">
+/* Barra inferior única e horizontal */
+#game .bottomNav,
+#game .bottom-menu,
+#game .bottomMenu,
+#game .shopNav,
+#game .navBottom{
+  overflow-x:auto !important;
+  overflow-y:hidden !important;
+  display:flex !important;
+  flex-wrap:nowrap !important;
+  gap:8px !important;
+  justify-content:flex-start !important;
+  align-items:stretch !important;
+  white-space:nowrap !important;
+  -webkit-overflow-scrolling:touch !important;
+  overscroll-behavior-x:contain;
+  touch-action:pan-x !important;
+  scrollbar-width:none;
+}
+#game .bottomNav::-webkit-scrollbar,
+#game .bottom-menu::-webkit-scrollbar,
+#game .bottomMenu::-webkit-scrollbar,
+#game .shopNav::-webkit-scrollbar,
+#game .navBottom::-webkit-scrollbar{display:none}
+
+/* Qualquer container inferior que contenha os botões */
+#game .bottomMenuBtn{
+  flex:0 0 auto !important;
+  width:92px !important;
+  min-width:92px !important;
+  max-width:92px !important;
+  min-height:64px !important;
+  white-space:normal !important;
+}
+
+/* Caso a barra tenha outro nome, a classe dos botões ainda força uma linha */
+#game .bottomMenuBtn{
+  flex-shrink:0 !important;
+}
+
+/* No celular, arrastar horizontalmente é a única ação do gesto na barra */
+@media(max-width:600px){
+  #game .bottomMenuBtn{
+    width:82px !important;
+    min-width:82px !important;
+    max-width:82px !important;
+    font-size:9px !important;
+  }
+}
+</style>
+
+
+<style id="horizontalBottomScroller-style">
+.horizontalBottomScroller{
+  overflow-x:auto !important;
+  overflow-y:hidden !important;
+  display:flex !important;
+  flex-wrap:nowrap !important;
+  justify-content:flex-start !important;
+  align-items:stretch !important;
+  gap:8px !important;
+  white-space:nowrap !important;
+  touch-action:pan-x !important;
+  -webkit-overflow-scrolling:touch !important;
+  scrollbar-width:none;
+}
+.horizontalBottomScroller::-webkit-scrollbar{display:none}
+.horizontalBottomScroller .bottomMenuBtn{
+  flex:0 0 82px !important;
+  width:82px !important;
+  min-width:82px !important;
+  max-width:82px !important;
+}
+</style>
+
+
+<style id="clean-combat-hud">
+/* HUD de combate limpo: mantém apenas informações essenciais e o minimapa. */
+#game .objective,
+#game .killfeed,
+#game .weatherTag,
+#game .weaponHud,
+#game .uz-round,
+#game .uz-score,
+#game .uz-event,
+#game .uz-crosshairHint,
+#game .mobileHint,
+#game .lootPrompt {
+  display:none !important;
+}
+/* O minimapa permanece sempre visível. */
+#game #minimap {
+  display:block !important;
+  z-index:20 !important;
+}
+</style>
+<style id="remove-requested-hud-buttons">#game .actions .aim,#game .actions .uzAbility,#game .actions .uzVehicle{display:none!important}</style></head><body><div id="startupError" class="hidden" style="position:fixed;inset:0;z-index:9999;background:#080b12;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px"><div style="max-width:420px;background:#111925;border:1px solid #334154;border-radius:16px;padding:22px">Inicializando BattleZone 3D…</div></div><div id="app">
+<section id="lobby" class="screen"><div class="top"><div class="brand">BATTLE<span>ZONE</span> 3D</div><div class="resources"><div class="res">🪙 <span id="gold">2500</span></div><div class="res">💎 <span id="diamonds">500</span></div></div></div><div id="lobby3d"></div>
+<div class="lobbyNews"><b>📢 CENTRAL DE OPERAÇÕES</b><p>Prepare seu equipamento, acompanhe suas missões e escolha uma experiência antes de entrar no mapa.</p><span class="newsTag">TEMPORADA ATIVA</span></div>
+<div class="lobbyHero"><div class="lobbyEyebrow">⚔️ OPERAÇÃO ATIVA</div><div class="lobbyTitle">ENTRE NA BATALHA</div><div class="lobbySub">Prepare seu equipamento, escolha o modo e entre em uma partida. Seu progresso, inventário e personalização ficam salvos neste dispositivo.</div><div class="lobbyStats"><div class="lobbyStat"><span>Nível</span><b id="lobbyLevel">8</b></div><div class="lobbyStat"><span>XP</span><b id="lobbyXp">720</b></div><div class="lobbyStat"><span>Itens</span><b id="lobbyItems">0</b></div></div></div>
+<div class="lobbyCards"><div class="lobbyCard"><b>⚡ PROGRESSO DO OPERADOR</b><small><span id="lobbyXpText">720 XP</span> até o próximo nível</small><div class="lobbyProgress"><i id="lobbyXpBar"></i></div></div><div class="lobbyCard"><b>🎯 MISSÕES DE HOJE</b><small>Confira suas missões e resgate recompensas.</small><div class="lobbyQuick"><button onclick="openMissions()">VER MISSÕES</button><button onclick="claimDaily()">🎁 BÔNUS</button></div></div></div>
+<button class="play" onclick="openModes()">JOGAR</button><div class="bottom horizontalBottomScroller">
+<button class="nav" onclick="openPanel('Loja')">🛒<b>LOJA</b></button><button class="nav" onclick="openPanel('Arsenal')">🔫<b>ARSENAL</b></button><button class="nav" onclick="openPanel('Personalização')">🎨<b>PERSONALIZAÇÃO</b></button><button class="nav" onclick="openPanel('Inventário')">🎒<b>INVENTÁRIO</b></button><button type="button" class="bottomMenuBtn" onclick="openProfile()">👤 PERFIL</button><button type="button" class="bottomMenuBtn" onclick="openMissions()">🎯 MISSÕES</button><button type="button" class="bottomMenuBtn" onclick="openSettings()">⚙️ OPÇÕES</button></div></section>
+<section id="game" class="screen hidden"><div id="game3d" style="position:absolute;inset:0"></div><div class="hud">
+<div class="gameTop"><div class="status">❤️ <span id="hp">100</span> &nbsp; 🛡️ <span id="shield">50</span></div><div class="status">🎯 <span id="ammo">30</span>/120 &nbsp; 👤 <span id="alive">50</span></div></div>
+<div class="objective" id="objective">OBJETIVO: sobreviva e elimine os inimigos</div><div class="killfeed" id="killfeed"></div><div class="minimap" id="minimap"><span class="miniDot miniPlayer" style="left:50%;top:50%"></span></div><div class="weatherTag" id="weatherTag">☀️ Dia claro</div><div class="weaponHud"><b id="weaponName">Rifle Aurora</b><div id="weaponStats">Dano 78 • Precisão 82</div></div>
+<div class="uz-zone" id="uzZone"></div><div class="uz-round" id="uzRound"></div><div class="uz-score" id="uzScore"></div><div class="uz-event" id="uzEvent"></div><div class="uz-crosshairHint" id="uzHint">WASD/joystick • olhar à direita • E mira • R recarrega</div><div class="cross"></div><div class="lookZone"></div><div class="weaponView"></div><div class="usebar"><i></i></div><div class="lootPrompt" id="lootPrompt">📦 LOOT PRÓXIMO — toque para pegar</div><div class="damageFlash" id="damageFlash"></div><div class="mobileHint">arraste o lado direito para olhar</div><div class="joystick"><div class="stick"></div></div><div class="actions"><button type="button" class="act shoot">ATIRAR</button><button type="button" class="act">RECARREGAR</button><button type="button" class="act">PULAR</button><button type="button" class="act">ARMA</button><button type="button" class="act">CORRER</button><button type="button" class="act">AGACHAR</button></div>
+</div><div class="knock" id="knock"><div class="knockBox"><h2>☠️ DERRUBADO</h2><div id="knockTimer">Reviva ou aguarde...</div><button class="primaryBtn" onclick="revivePlayer()">REVIVER</button></div></div></section>
+
+<div id="panel" class="panel hidden"><button class="close" onclick="closePanel()">✕</button><div id="panelBody"></div></div><div id="modePanel" class="panel hidden"><button class="close" onclick="closePanel()">✕</button><h2>🎮 Escolha o modo</h2><div class="modeHeader">Selecione uma experiência para começar. O restante do lobby permanece intacto.</div><div class="modeGrid"><div class="modeCard featured"><div class="modeIcon">🗺️</div><h3>Battle Royale</h3><p>Solo. Explore o mapa, sobreviva aos inimigos e seja o último sobrevivente.</p><div class="modeDetails"><span class="modePill">SOLO</span><span class="modePill">MAPA ABERTO</span><span class="modePill">ÚLTIMO VIVO</span></div><button onclick="startGame('Battle Royale Solo')">JOGAR SOLO</button></div><div class="modeCard"><div class="modeIcon">👥</div><h3>Contra Esquadrão 4x4</h3><p>Entre com aliados, enfrente quatro inimigos e lute em equipe.</p><div class="modeDetails"><span class="modePill">4x4</span><span class="modePill">EQUIPE</span><span class="modePill">COMBATE</span></div><button onclick="startGame('Contra Esquadrão')">JOGAR 4x4</button></div><div class="modeCard"><div class="modeIcon">🎯</div><h3>Treinamento</h3><p>Treine movimentação, mira, armas e combate sem pressão de uma partida normal.</p><div class="modeDetails"><span class="modePill">PRÁTICA</span><span class="modePill">ALVOS</span><span class="modePill">SEM PRESSÃO</span></div><button onclick="startGame('Treinamento')">TREINAR</button></div><div class="modeCard featured"><div class="modeIcon">🌐</div><h3>Online — Jogadores Reais</h3><p>Entre em uma sala e jogue em tempo real com outras pessoas.</p><div class="modeDetails"><span class="modePill">PVP</span><span class="modePill">TEMPO REAL</span><span class="modePill">ATÉ 8</span></div><button onclick="openOnline()">JOGAR ONLINE</button></div></div></div><div id="onlineOverlay" class="fullOverlay hidden"><div class="fullCard"><button class="close" onclick="closeOnline()">✕</button><h2>🌐 Multiplayer Online</h2><p class="muted">Conecte-se ao servidor, escolha um nome e entre em uma sala. Outros jogadores conectados à mesma sala aparecerão no mapa em tempo real.</p><div class="listRow"><span>👤 Nome</span><input id="onlineName" maxlength="16" placeholder="Seu nome" style="max-width:180px"></div><div class="listRow"><span>🚪 Sala</span><input id="onlineRoom" maxlength="12" value="PUBLIC" style="max-width:180px;text-transform:uppercase"></div><div class="listRow"><span>🌐 Servidor</span><input id="onlineServer" value="ws://localhost:8080" style="max-width:240px"></div><button class="primaryBtn" onclick="connectOnline()">CONECTAR E JOGAR</button><div id="onlineStatus" class="muted" style="margin-top:12px">Servidor local padrão: ws://localhost:8080</div></div></div><div id="toast"></div>
+<div id="profileOverlay" class="fullOverlay hidden"></div><div id="missionsOverlay" class="fullOverlay hidden"></div><div id="settingsOverlay" class="fullOverlay hidden"></div><div id="postOverlay" class="fullOverlay hidden"></div><div id="achOverlay" class="fullOverlay hidden"></div><div id="uzLoadout" class="fullOverlay hidden"></div></div>
+<script id="three-loader">
+(function(){
+  var done=false, started=Date.now(), timer;
+  function ready(){ if(done) return; done=true; clearTimeout(timer); window.dispatchEvent(new Event("battlezone-three-ready")); }
+  function fail(){ if(done) return; done=true; clearTimeout(timer); if(typeof bzStartupMessage==='function') bzStartupMessage("Não foi possível carregar o motor 3D","O Chrome não conseguiu carregar o Three.js. Verifique a internet e tente novamente."); }
+  window.addEventListener("load",function(){ if(window.THREE) ready(); });
+  timer=setTimeout(function(){ if(!window.THREE) fail(); },12000);
+  var a=document.createElement("script"); a.src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"; a.async=true;
+  a.onload=ready;
+  a.onerror=function(){
+    var b=document.createElement("script"); b.src="https://unpkg.com/three@0.160.0/build/three.min.js"; b.async=true;
+    b.onload=ready; b.onerror=fail; document.head.appendChild(b);
+  };
+  document.head.appendChild(a);
+})();
+</script><script>
+function bzStartupMessage(title,detail){const el=document.getElementById("startupError");if(el){el.innerHTML='<div style="font-size:22px;font-weight:900;margin-bottom:8px">'+title+'</div><div style="color:#aeb9c8;line-height:1.45">'+detail+'</div><button onclick="location.reload()" style="margin-top:14px;background:#ff9f00;color:#111;border:0;border-radius:10px;padding:10px 16px;font-weight:900">TENTAR NOVAMENTE</button>';el.classList.remove("hidden")}}
+window.addEventListener("error",e=>{const m=String(e?.error?.message||e?.message||"");if(/THREE|WebGL|WebGLRenderer|CapsuleGeometry/i.test(m))bzStartupMessage("Falha ao iniciar o 3D","O Chrome não conseguiu inicializar o motor gráfico. Recarregue a página e tente novamente.")});
+const S=(()=>{try{return JSON.parse(localStorage.bz||'{}')}catch(e){return {}}})();Object.assign(S,{gold:S.gold??2500,diamonds:S.diamonds??500,xp:S.xp??720,level:S.level??8,hp:S.hp??100,shield:S.shield??50,ammo:S.ammo??30,score:S.score??0,weapon:S.weapon??'Rifle',mode:S.mode??'',inventory:S.inventory??[],equipped:S.equipped??{weapon:'Rifle',skin:null,character:null,emote:null,item:null}});
+const $=ref=>document.getElementById(ref)||document.querySelector(ref);function save(){try{localStorage.bz=JSON.stringify(S)}catch(e){}}function sync(){if($('gold'))$('gold').textContent=S.gold;if($('diamonds'))$('diamonds').textContent=S.diamonds}
+function syncLobbyInfo(){
+  const level=S.level||1,xp=S.xp||0,need=1000+level*250,pct=Math.min(100,Math.round(xp/need*100));
+  if($('lobbyLevel'))$('lobbyLevel').textContent=level;
+  if($('lobbyXp'))$('lobbyXp').textContent=xp;
+  if($('lobbyItems'))$('lobbyItems').textContent=(S.owned||[]).length;
+  if($('lobbyXpText'))$('lobbyXpText').textContent=xp+' / '+need+' XP';
+  if($('lobbyXpBar'))$('lobbyXpBar').style.width=pct+'%';
+}
+function toast(t){if(!$('toast'))return;$('toast').textContent=t;$('toast').style.opacity=1;clearTimeout(window.tt);window.tt=setTimeout(()=>$('toast').style.opacity=0,1300)}sync();syncLobbyInfo();
+let scene,camera,renderer,player,clock,animFrame;let state={sprint:false,crouch:false,grounded:true,vy:0,yaw:0,pitch:0,shooting:false,reloading:false,healing:false,aiming:false,weapon:'Rifle',recoil:0,recoilTarget:0,recoilVel:0,recoilReturnSpeed:11,savedAimPitch:0,hasSavedAim:false,reloadProgress:0};
+let weaponGroup=null,projectiles=[],targets=[],muzzleFlash=null,shotSerial=0;
+let playerAvatar=null, humanoidClock=0;
+function humanoidMaterial(color, rough=.75, metal=0){
+  return new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal});
+}
+function limbGeo(){return new THREE.CapsuleGeometry(.105,.42,4,8)}
+function makeHumanoid(role='player',variant=0){
+  const root=new THREE.Group(); root.userData.humanoid=true; root.userData.role=role;
+  const palette=role==='player'
+    ? {suit:0x2f6fb0,vest:0x172536,helmet:0x263746,pants:0x20262d,boots:0x11151a,skin:0xc88f6f,accent:0x63b5ff}
+    : [
+      {suit:0x8e343d,vest:0x2a2023,helmet:0x39252a,pants:0x24262c,boots:0x101318,skin:0xc88f6f,accent:0xff6666},
+      {suit:0x3b6798,vest:0x1b2635,helmet:0x26384d,pants:0x202832,boots:0x11161b,skin:0xb98267,accent:0x69a8ff},
+      {suit:0x78603d,vest:0x29271f,helmet:0x45402e,pants:0x303027,boots:0x151613,skin:0xc79372,accent:0xd8b45b},
+      {suit:0x5b4774,vest:0x24202d,helmet:0x382e4a,pants:0x24212d,boots:0x121116,skin:0xb87862,accent:0xb28cff},
+      {suit:0x355f52,vest:0x1b2825,helmet:0x263b35,pants:0x202a27,boots:0x111714,skin:0xc38b6d,accent:0x68d7a8}
+    ][variant%5];
+  const torso=new THREE.Mesh(new THREE.BoxGeometry(.48,.62,.27),humanoidMaterial(palette.suit));torso.position.y=1.05;root.add(torso);
+  const vest=new THREE.Mesh(new THREE.BoxGeometry(.52,.38,.30),humanoidMaterial(palette.vest, .68));vest.position.set(0,1.08,.015);root.add(vest);
+  // chest plates
+  for(const x of [-.14,.14]){const p=new THREE.Mesh(new THREE.BoxGeometry(.20,.16,.025),humanoidMaterial(palette.accent,.55, .15));p.position.set(x,1.13,-.17);root.add(p)}
+  const neck=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,.12,8),humanoidMaterial(palette.skin));neck.position.y=1.43;root.add(neck);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(.22,12,10),humanoidMaterial(palette.skin));head.scale.y=1.08;head.position.y=1.62;root.add(head);
+  const helmet=new THREE.Mesh(new THREE.SphereGeometry(.245,12,8,0,Math.PI*2,0,Math.PI*.58),humanoidMaterial(palette.helmet,.48,.1));helmet.position.y=1.69;root.add(helmet);
+  const visor=new THREE.Mesh(new THREE.BoxGeometry(.30,.055,.035),new THREE.MeshStandardMaterial({color:palette.accent,roughness:.25,metalness:.25,emissive:palette.accent,emissiveIntensity:.08}));visor.position.set(0,1.65,-.215);root.add(visor);
+  const makeArm=(side)=>{const sh=new THREE.Group();sh.position.set(side*.34,1.28,0);root.add(sh);const upper=new THREE.Mesh(limbGeo(),humanoidMaterial(palette.suit));upper.rotation.z=side*.12;upper.position.y=-.20;sh.add(upper);const fore=new THREE.Group();fore.position.set(0,-.42,0);sh.add(fore);const fm=new THREE.Mesh(limbGeo(),humanoidMaterial(palette.suit));fm.position.y=-.20;fore.add(fm);const hand=new THREE.Mesh(new THREE.SphereGeometry(.105,8,6),humanoidMaterial(palette.skin));hand.position.y=-.43;fore.add(hand);return {shoulder:sh,forearm:fore,hand}}
+  const makeLeg=(side)=>{const hip=new THREE.Group();hip.position.set(side*.15,.78,0);root.add(hip);const upper=new THREE.Mesh(limbGeo(),humanoidMaterial(palette.pants));upper.position.y=-.22;hip.add(upper);const knee=new THREE.Group();knee.position.set(0,-.43,0);hip.add(knee);const lower=new THREE.Mesh(limbGeo(),humanoidMaterial(palette.pants));lower.position.y=-.20;knee.add(lower);const boot=new THREE.Mesh(new THREE.BoxGeometry(.20,.16,.36),humanoidMaterial(palette.boots,.55,.15));boot.position.set(0,-.45,-.045);knee.add(boot);return {hip,knee}}
+  const LArm=makeArm(-1), RArm=makeArm(1), LLeg=makeLeg(-1), RLeg=makeLeg(1);
+  // Backpack and shoulder pads
+  const pack=new THREE.Mesh(new THREE.BoxGeometry(.38,.48,.16),humanoidMaterial(0x171d24,.8));pack.position.set(0,1.12,.22);root.add(pack);
+  for(const side of [-1,1]){const pad=new THREE.Mesh(new THREE.SphereGeometry(.12,8,6),humanoidMaterial(palette.vest));pad.scale.set(1,.55,.9);pad.position.set(side*.37,1.38,0);root.add(pad)}
+  // utility belt / pouches
+  const belt=new THREE.Mesh(new THREE.BoxGeometry(.58,.10,.30),humanoidMaterial(0x171b20));belt.position.y=.79;root.add(belt);
+  for(let i=-1;i<=1;i++){const pouch=new THREE.Mesh(new THREE.BoxGeometry(.11,.13,.08),humanoidMaterial(palette.vest));pouch.position.set(i*.17,.75,-.17);root.add(pouch)}
+  root.userData.parts={torso,head,shoulderL:LArm.shoulder,shoulderR:RArm.shoulder,foreL:LArm.forearm,foreR:RArm.forearm,hipL:LLeg.hip,hipR:RLeg.hip,kneeL:LLeg.knee,kneeR:RLeg.knee,visor};
+  root.userData.baseY=0;
+  return root;
+}
+function initHumanoidAnim(root){
+  if(!root)return;
+  root.userData.anim={phase:Math.random()*Math.PI*2,attack:0,hit:0,death:0,dead:false};
+}
+function updateHumanoid(root,dt,moving=false,speed=0,attack=false,dead=false){
+  if(!root?.userData?.humanoid)return;
+  const p=root.userData.parts,a=root.userData.anim||(root.userData.anim={phase:0,attack:0,hit:0,death:0,dead:false});
+  a.phase+=dt*(moving?5+speed*1.5:1.2);
+  if(attack)a.attack=Math.min(1,a.attack+dt*7); else a.attack=Math.max(0,a.attack-dt*5);
+  const swing=moving?Math.sin(a.phase)*.65:Math.sin(a.phase*.7)*.035;
+  p.hipL.rotation.x=-swing;p.hipR.rotation.x=swing;
+  p.shoulderL.rotation.x=swing*.8;p.shoulderR.rotation.x=-swing*.8;
+  p.kneeL.rotation.x=Math.max(0,-swing)*.55;p.kneeR.rotation.x=Math.max(0,swing)*.55;
+  p.foreL.rotation.x=.08;p.foreR.rotation.x=.08;
+  if(a.attack>0){const q=Math.sin(a.attack*Math.PI);p.shoulderR.rotation.x=-1.05*q-.15;p.foreR.rotation.x=-.45*q;p.shoulderL.rotation.x=.45*q}
+  root.rotation.z=moving?Math.sin(a.phase*2)*.025:0;
+  if(dead){a.death=Math.min(1,a.death+dt*.9);root.rotation.z=a.death*1.35;root.position.y=Math.max(0,1.0-a.death*.8)}
+}
+function makeWorld(target){
+  if(renderer){cancelAnimationFrame(animFrame);renderer.dispose();renderer.domElement.remove()}
+  scene=new THREE.Scene();scene.background=new THREE.Color(0x86a7c0);
+  camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.05,500);
+  try{renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));renderer.setSize(innerWidth,innerHeight);target.appendChild(renderer.domElement)}catch(err){console.error('BattleZone WebGL:',err);bzStartupMessage('Não foi possível iniciar o modo 3D','O WebGL do Chrome não está disponível nesta execução. Tente recarregar a página.');return}
+  scene.add(new THREE.HemisphereLight(0xddeeff,0x334422,2));
+  let sun=new THREE.DirectionalLight(0xffffff,2);sun.position.set(30,60,20);scene.add(sun);
+  let ground=new THREE.Mesh(new THREE.PlaneGeometry(240,240),new THREE.MeshStandardMaterial({color:0x3e6542}));ground.rotation.x=-Math.PI/2;scene.add(ground);
+  for(let i=0;i<35;i++){let x=(Math.random()-.5)*180,z=(Math.random()-.5)*180,h=2+Math.random()*7,m=new THREE.Mesh(new THREE.CylinderGeometry(.5,1.8,h,7),new THREE.MeshStandardMaterial({color:0x345b37}));m.position.set(x,h/2,z);m.userData.solid=true;scene.add(m)}
+  for(let i=0;i<12;i++){let x=(Math.random()-.5)*150,z=(Math.random()-.5)*150,m=new THREE.Mesh(new THREE.BoxGeometry(5,3,5),new THREE.MeshStandardMaterial({color:0x77716a}));m.position.set(x,1.5,z);m.userData.solid=true;scene.add(m)}
+  projectiles=[];targets=[];
+  player=new THREE.Group();player.position.set(0,0,8);scene.add(player);
+  playerAvatar=makeHumanoid('player',0); initHumanoidAnim(playerAvatar); playerAvatar.visible=(target&&target.id==='lobby3d'); player.add(playerAvatar);
+  buildFirstPersonWeapon();
+  if(target&&target.id==='lobby3d'){ camera.position.set(3.8,2.35,7.6); camera.lookAt(0,1.05,4); if(weaponGroup)weaponGroup.visible=false; }
+  clock=new THREE.Clock();state.yaw=0;state.pitch=0;animate()
+}
+function buildFirstPersonWeapon(){
+  if(weaponGroup)camera.remove(weaponGroup);
+  weaponGroup=new THREE.Group();weaponGroup.position.set(.34,-.30,-.62);weaponGroup.rotation.set(-.04,0,0);camera.add(weaponGroup);scene.add(camera);
+  const dark=new THREE.MeshStandardMaterial({color:0x15191d,metalness:.8,roughness:.28});
+  const metal=new THREE.MeshStandardMaterial({color:0x4d555b,metalness:.75,roughness:.3});
+  const gripMat=new THREE.MeshStandardMaterial({color:0x22282c,roughness:.7});
+  const receiver=new THREE.Mesh(new THREE.BoxGeometry(.24,.22,.72),dark);receiver.position.set(0,0,0);weaponGroup.add(receiver);
+  const barrel=new THREE.Mesh(new THREE.CylinderGeometry(.045,.055,.48,10),metal);barrel.rotation.x=Math.PI/2;barrel.position.set(0,.01,-.58);weaponGroup.add(barrel);
+  const stock=new THREE.Mesh(new THREE.BoxGeometry(.18,.17,.30),dark);stock.position.set(0,.02,.48);weaponGroup.add(stock);
+  const grip=new THREE.Mesh(new THREE.BoxGeometry(.13,.34,.16),gripMat);grip.position.set(0,-.25,.18);grip.rotation.x=-.15;weaponGroup.add(grip);
+  const sight=new THREE.Mesh(new THREE.BoxGeometry(.06,.08,.18),metal);sight.position.set(0,.14,-.08);weaponGroup.add(sight);
+  const handMat=new THREE.MeshStandardMaterial({color:0x9b6548,roughness:.9});
+  const hand=new THREE.Mesh(new THREE.SphereGeometry(.13,10,8),handMat);hand.scale.set(1.15,.75,1.35);hand.position.set(-.16,-.14,-.05);weaponGroup.add(hand);
+  const hand2=hand.clone();hand2.position.set(.13,-.16,.22);weaponGroup.add(hand2);
+  muzzleFlash=new THREE.Mesh(new THREE.SphereGeometry(.11,8,6),new THREE.MeshBasicMaterial({color:0xffc24a}));muzzleFlash.position.set(0,.01,-.84);muzzleFlash.visible=false;weaponGroup.add(muzzleFlash);
+}
+function cameraHeight(){return state.crouch?1.05:1.65}
+  // Colisão 2D robusta baseada no tamanho real das construções/objetos sólidos.
+  function collides(x,z,radius=.62,ignore=null){
+    if(x<-114||x>114||z<-114||z>114)return true;
+    const center=new THREE.Vector3(x,1,z);
+    for(const o of scene.children){
+      if(!o.userData?.solid||o===ignore||!o.geometry)continue;
+      const box=new THREE.Box3().setFromObject(o);
+      box.min.x-=radius; box.max.x+=radius;
+      box.min.z-=radius; box.max.z+=radius;
+      if(center.x>=box.min.x&&center.x<=box.max.x&&center.z>=box.min.z&&center.z<=box.max.z)return true;
+    }
+    return false;
+  }
+  function randomFreePoint(minDistance=0,fromX=0,fromZ=0){
+    for(let tries=0;tries<180;tries++){
+      const x=-105+Math.random()*210,z=-105+Math.random()*210;
+      if(Math.hypot(x-fromX,z-fromZ)<minDistance)continue;
+      if(!collides(x,z,.72))return {x,z};
+    }
+    for(let z=-100;z<=100;z+=5)for(let x=-100;x<=100;x+=5){
+      if(Math.hypot(x-fromX,z-fromZ)>=minDistance&&!collides(x,z,.72))return {x,z};
+    }
+    return {x:0,z:8};
+  }
+  function moveWithCollision(obj,x,z,radius=.55){
+    if(!obj)return false;
+    let moved=false;
+    if(!collides(x,obj.position.z,radius,obj)){obj.position.x=x;moved=true;}
+    if(!collides(obj.position.x,z,radius,obj)){obj.position.z=z;moved=true;}
+    return moved;
+  }
+  function placePlayerSafe(){if(!player)return;const pt=randomFreePoint(0);player.position.set(pt.x,0,pt.z);}
+function move(dt){
+  if(!player || !camera || !scene) return;
+
+  // Entrada: teclado + analógico. O analógico continua funcionando
+  // mesmo enquanto o jogador olha para os lados.
+  let strafe=(keys.d?1:0)-(keys.a?1:0)+Number(joy.x||0);
+  let forwardInput=(keys.w?1:0)-(keys.s?1:0)-Number(joy.y||0);
+
+  // Evita que pequenos ruídos do touch façam o personagem "andar parado".
+  if(Math.abs(strafe)<0.035) strafe=0;
+  if(Math.abs(forwardInput)<0.035) forwardInput=0;
+
+  const inputLen=Math.hypot(strafe,forwardInput);
+  if(inputLen>1){
+    strafe/=inputLen;
+    forwardInput/=inputLen;
+  }
+
+  const yaw=Number.isFinite(state.yaw)?state.yaw:0;
+  const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
+  const right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
+
+  const dirX=right.x*strafe + forward.x*forwardInput;
+  const dirZ=right.z*strafe + forward.z*forwardInput;
+  const dirLen=Math.hypot(dirX,dirZ);
+
+  // O corpo acompanha a direção da câmera.
+  player.rotation.y=yaw;
+
+  // Movimento básico sempre disponível; sprint apenas aumenta a velocidade.
+  const moving=dirLen>0.001;
+  let speed=state.crouch?6.3:8.4;
+  if(state.sprint && forwardInput>0.03) speed=14.0;
+
+  if(moving){
+    const vx=dirX*speed*dt;
+    const vz=dirZ*speed*dt;
+
+    // Colisão por eixo: se um lado estiver bloqueado, o outro ainda anda.
+    const nextX=player.position.x+vx;
+    const nextZ=player.position.z+vz;
+
+    if(!collides(nextX,player.position.z)) player.position.x=nextX;
+    if(!collides(player.position.x,nextZ)) player.position.z=nextZ;
+  }
+
+  // Gravidade/pulo.
+  if(state.grounded){
+    player.position.y=0;
+  }else{
+    state.vy-=18*dt;
+    player.position.y+=state.vy*dt;
+    if(player.position.y<=0){
+      player.position.y=0;
+      state.vy=0;
+      state.grounded=true;
+    }
+  }
+
+  // Câmera acompanha o jogador sem alterar sua posição horizontal.
+  const bob=moving ? Math.sin(performance.now()/90)*(state.sprint?.045:.018) : 0;
+  camera.position.set(
+    player.position.x,
+    player.position.y+cameraHeight()+bob,
+    player.position.z
+  );
+  camera.rotation.order='YXZ';
+  camera.rotation.y=yaw;
+  camera.rotation.x=state.pitch;
+}
+
+function animate(){animFrame=requestAnimationFrame(animate);if(!renderer)return;let dt=Math.min(.033,clock.getDelta());move(dt);if(playerAvatar&&playerAvatar.visible)updateHumanoid(playerAvatar,dt,false,0,false,false);for(const t of targets||[]){if(t.alive&&t.bot)updateHumanoid(t.g,dt,false,0,t.lastMelee&&performance.now()-t.lastMelee<260,false);}updateRecoil(dt);updateReloadAnimation(dt);updateProjectiles(dt);renderer.render(scene,camera)}
+function updateRecoil(dt){
+  // Recuo separado da mira base: a posição original fica preservada.
+  if(state.shooting){
+    state.recoilTarget=Math.max(0,state.recoilTarget);
+    state.recoil+=(state.recoilTarget-state.recoil)*Math.min(1,dt*38);
+    state.recoilVel*=Math.max(0,1-dt*18);
+  }else{
+    // Ao parar de atirar, o offset volta suavemente a zero.
+    state.recoilTarget=0;
+    state.recoil+=(0-state.recoil)*Math.min(1,dt*state.recoilReturnSpeed);
+    state.recoilVel*=Math.max(0,1-dt*12);
+    if(Math.abs(state.recoil)<0.0007){
+      state.recoil=0;
+      if(state.hasSavedAim){
+        state.pitch=state.savedAimPitch;
+        state.hasSavedAim=false;
+      }
+    }
+  }
+  const kick=state.recoil;
+  camera.rotation.x=state.pitch-kick;
+  if(weaponGroup){weaponGroup.position.z=(state.aiming?-0.46:-0.62)+kick*.13;weaponGroup.rotation.x=-.04-kick*.55;weaponGroup.rotation.z=state.reloadProgress>0?Math.sin(state.reloadProgress*Math.PI)*.65:0}
+}
+function updateReloadAnimation(dt){
+  if(!weaponGroup)return;
+  if(state.reloading){state.reloadProgress=Math.min(1,state.reloadProgress+dt/.95);let p=state.reloadProgress;weaponGroup.rotation.x=-.04-Math.sin(p*Math.PI)*.55;weaponGroup.rotation.y=Math.sin(p*Math.PI*2)*.18;weaponGroup.position.y=-.30-Math.sin(p*Math.PI)*.10;}
+  else {state.reloadProgress=0;weaponGroup.position.y=-.30;weaponGroup.rotation.y=0;}
+}
+
+function lobby3d(){try{if(!window.THREE){bzStartupMessage('Motor 3D não carregou','A biblioteca gráfica não foi carregada. Verifique sua conexão e toque em TENTAR NOVAMENTE.');return}makeWorld($('lobby3d'));if(player)player.position.set(0,0,4);$('startupError')?.classList.add('hidden')}catch(err){console.error('BattleZone startup:',err);bzStartupMessage('Erro ao iniciar o jogo','O Chrome encontrou um erro ao montar o cenário 3D. Tente recarregar.')}}
+function openModes(){$('modePanel').classList.remove('hidden')}
+function closePanel(){$('panel').classList.add('hidden');$('modePanel').classList.add('hidden')}
+
+
+const MENU_CATEGORIES={
+  shop:[
+    ['Todos','all'],['Ofertas','ofertas']
+  ],
+  weapons:[
+    ['Todos','all'],['Rifles','rifles'],['SMGs','smgs'],['Precisão','precision'],['Pesadas','heavy']
+  ],
+  characters:[
+    ['Todos','all'],['Assalto','assault'],['Defesa','defense'],['Suporte','support'],['Especial','special']
+  ],
+  skins:[
+    ['Todas','all'],['Neon','neon'],['Camuflagem','camo'],['Premium','premium']
+  ],
+  items:[
+    ['Todos','all'],['Cura','healing'],['Equipamentos','equipment'],['Táticos','tactical'],['Emotes','emotes']
+  ]
+};
+
+const ITEM_CATEGORY={
+  rifle_aurora:'rifles', ar_kraken:'rifles',
+  smg_viper:'smgs', smg_comet:'smgs',
+  sniper_eclipse:'precision', dmr_phantom:'precision',
+  shotgun_titan:'heavy', lmg_bastion:'heavy', launcher_ion:'heavy', pistola_nova:'precision',
+
+  raven:'assault', kai:'assault', luna:'assault',
+  atlas:'defense', blaze:'defense',
+  maya:'support', nova:'support',
+  specter:'special', viper:'special', zero:'special',
+
+  skin_neon:'neon', skin_shadow:'premium', skin_desert:'camo',
+  skin_arctic:'camo', skin_gold:'premium',
+
+  kit_medico:'healing', colete:'equipment',
+  granada:'tactical', drone:'tactical', emote_vitoria:'emotes',
+
+  pacote_neon:'ofertas', pacote_combate:'ofertas',
+  caixa_surpresa:'ofertas', passe_veterano:'ofertas'
+};
+
+function subtabBar(menu,active){
+  const cats=MENU_CATEGORIES[menu]||[['Todos','all']];
+  return '<div class="subtabs">'+cats.map(c=>
+    '<button class="subtab '+(active===c[1]?'active':'')+
+    '" onclick="renderPanel(\''+menu+'\',\''+c[1]+'\')">'+c[0]+'</button>'
+  ).join('')+'</div>';
+}
+
+function categoryMatches(item,cat){
+  return cat==='all'||ITEM_CATEGORY[item.id]===cat;
+}
+
+const CATALOG={
+  armas:[
+    {id:'rifle_aurora',name:'Rifle Aurora',price:650,currency:'gold',type:'Arma',meta:'Dano 78 • Precisão 82 • Equilibrada'},
+    {id:'smg_viper',name:'SMG Viper',price:800,currency:'gold',type:'Arma',meta:'Dano 61 • Cadência 95 • Curto alcance'},
+    {id:'shotgun_titan',name:'Escopeta Titan',price:1100,currency:'gold',type:'Arma',meta:'Dano 96 • Alcance 40 • 8 projéteis'},
+    {id:'sniper_eclipse',name:'Sniper Eclipse',price:1400,currency:'gold',type:'Arma',meta:'Dano 92 • Precisão 98 • Longo alcance'},
+    {id:'pistola_nova',name:'Pistola Nova',price:450,currency:'gold',type:'Arma',meta:'Dano 48 • Mobilidade 90'},
+    {id:'lmg_bastion',name:'LMG Bastion',price:1700,currency:'gold',type:'Arma',meta:'Dano 70 • Carregador grande • Pesada'},
+    {id:'ar_kraken',name:'AR Kraken',price:1250,currency:'gold',type:'Arma',meta:'Dano 82 • Controle 76 • Versátil'},
+    {id:'dmr_phantom',name:'DMR Phantom',price:1550,currency:'gold',type:'Arma',meta:'Dano 88 • Precisão 94 • Semiautomática'},
+    {id:'smg_comet',name:'SMG Comet',price:1000,currency:'gold',type:'Arma',meta:'Dano 58 • Cadência 98 • Muito rápida'},
+    {id:'launcher_ion',name:'Lançador Ion',price:12,currency:'diamonds',type:'Arma',meta:'Dano explosivo • Uso especial'}
+  ],
+  personagens:[
+    {id:'raven',name:'Raven',price:900,currency:'gold',type:'Personagem',meta:'Habilidade: impulso'},
+    {id:'nova',name:'Nova',price:10,currency:'diamonds',type:'Personagem',meta:'Habilidade: escudo'},
+    {id:'kai',name:'Kai',price:750,currency:'gold',type:'Personagem',meta:'Habilidade: corrida'},
+    {id:'maya',name:'Maya',price:850,currency:'gold',type:'Personagem',meta:'Habilidade: cura'},
+    {id:'blaze',name:'Blaze',price:1200,currency:'gold',type:'Personagem',meta:'Habilidade: resistência'},
+    {id:'specter',name:'Specter',price:14,currency:'diamonds',type:'Personagem',meta:'Habilidade: camuflagem'},
+    {id:'atlas',name:'Atlas',price:1300,currency:'gold',type:'Personagem',meta:'Habilidade: escudo pesado'},
+    {id:'luna',name:'Luna',price:1000,currency:'gold',type:'Personagem',meta:'Habilidade: velocidade'},
+    {id:'viper',name:'Viper',price:11,currency:'diamonds',type:'Personagem',meta:'Habilidade: veneno'},
+    {id:'zero',name:'Zero',price:1600,currency:'gold',type:'Personagem',meta:'Habilidade: foco'}
+  ],
+  skins:[
+    {id:'skin_neon',name:'Skin Neon',price:500,currency:'gold',type:'Skin',meta:'Visual neon para o equipamento'},
+    {id:'skin_shadow',name:'Skin Shadow',price:8,currency:'diamonds',type:'Skin',meta:'Visual furtivo'},
+    {id:'skin_desert',name:'Skin Desert',price:450,currency:'gold',type:'Skin',meta:'Camuflagem desértica'},
+    {id:'skin_arctic',name:'Skin Arctic',price:450,currency:'gold',type:'Skin',meta:'Camuflagem de inverno'},
+    {id:'skin_gold',name:'Skin Gold',price:15,currency:'diamonds',type:'Skin',meta:'Visual dourado'}
+  ],
+  itens:[
+    {id:'kit_medico',name:'Kit Médico',price:250,currency:'gold',type:'Consumível',meta:'+35 de vida por uso'},
+    {id:'colete',name:'Colete Reforçado',price:700,currency:'gold',type:'Equipamento',meta:'+25 de escudo'},
+    {id:'granada',name:'Granada Tática',price:350,currency:'gold',type:'Equipamento',meta:'Controle de área'},
+    {id:'drone',name:'Drone Batedor',price:7,currency:'diamonds',type:'Equipamento',meta:'Reconhecimento'},
+    {id:'emote_vitoria',name:'Emote Vitória',price:300,currency:'gold',type:'Emote',meta:'Animação de comemoração'}
+  ],
+  ofertas:[
+    {id:'pacote_neon',name:'Pacote Neon',price:900,currency:'gold',type:'Oferta',meta:'Pacote exclusivo • vai direto para o Cofre'},
+    {id:'pacote_combate',name:'Pacote de Combate',price:1200,currency:'gold',type:'Oferta',meta:'Kit especial para começar uma partida'},
+    {id:'caixa_surpresa',name:'Caixa Surpresa',price:5,currency:'diamonds',type:'Oferta',meta:'Recompensa aleatória • fica no Cofre'},
+    {id:'passe_veterano',name:'Passe Veterano',price:18,currency:'diamonds',type:'Oferta',meta:'Conteúdo especial do perfil'}
+  ]
+};
+
+const TAB_DEFS=[
+  ['Visão geral','overview'],['Loja','shop'],['Inventário','vault'],
+  ['Arsenal','weapons'],['Personalização','custom']
+];
+
+S.owned=S.owned||[];
+S.equipped=S.equipped||{arma:'rifle_aurora',personagem:'raven',skin:null,itens:[]};
+if(!S.owned.includes('rifle_aurora'))S.owned.push('rifle_aurora');
+if(!S.owned.includes('raven'))S.owned.push('raven');
+save();
+
+function allItems(){return Object.values(CATALOG).flat()}
+function findItem(id){return allItems().find(x=>x.id===id)}
+function isOwned(id){return S.owned.includes(id)}
+function isEquipped(item){
+  if(item.type==='Arma')return S.equipped.arma===item.id;
+  if(item.type==='Personagem')return S.equipped.personagem===item.id;
+  if(item.type==='Skin')return S.equipped.skin===item.id;
+  return (S.equipped.itens||[]).includes(item.id);
+}
+function currencyIcon(c){return c==='diamonds'?'💎':'🪙'}
+function currencyValue(c){return Number(S[c]||0)}
+function priceText(item){return currencyIcon(item.currency)+' '+item.price}
+
+function buyItem(id){
+  const item=findItem(id);
+  if(!item||isOwned(id)){toast('Item já comprada');return}
+  if(currencyValue(item.currency)<item.price){toast(item.currency==='diamonds'?'Diamantes insuficientes':'Ouro insuficiente');return}
+  S[item.currency]-=item.price;
+  S.owned.push(id);
+  save();sync();
+  toast(item.name+' foi para o Cofre!');
+  renderPanel(window.currentPanel||'shop');
+}
+
+function equipItem(id){
+  const item=findItem(id);
+  if(!item||!isOwned(id))return toast('Compre o item primeiro');
+  if(item.type==='Arma')S.equipped.arma=id;
+  else if(item.type==='Personagem')S.equipped.personagem=id;
+  else if(item.type==='Skin')S.equipped.skin=(S.equipped.skin===id?null:id);
+  else{
+    S.equipped.itens=S.equipped.itens||[];
+    const i=S.equipped.itens.indexOf(id);
+    if(i>=0)S.equipped.itens.splice(i,1);else S.equipped.itens.push(id);
+  }
+  save();toast(isEquipped(item)?'Equipado: '+item.name:'Desequipado: '+item.name);renderPanel(window.currentPanel||'vault');
+}
+
+function itemButton(item,mode){
+  if(mode==='shop'){
+    if(isOwned(item.id))return '<button class="secondary" disabled>✓ JÁ COMPRADA</button>';
+    return '<button onclick="buyItem(\''+item.id+'\')">COMPRAR • '+priceText(item)+'</button>';
+  }
+  if(!isOwned(item.id))return '<button class="secondary" disabled>🔒 NÃO POSSUI</button>';
+  return '<button onclick="equipItem(\''+item.id+'\')">'+(isEquipped(item)?'↩ DESEQUIPAR':'⚡ EQUIPAR')+'</button>';
+}
+
+function card(item,mode){
+  const cls='card '+(isOwned(item.id)?'owned ':'')+(isEquipped(item)?'equipped':'');
+  return '<div class="'+cls+'"><b>'+item.name+'</b><div class="itemMeta">'+item.type+'<br>'+item.meta+'</div>'+
+    (isEquipped(item)?'<span class="tag">EQUIPADO</span>':'')+
+    (isOwned(item)&&mode==='shop'?'<span class="tag">NO COFRE</span>':'')+
+    itemButton(item,mode)+'</div>';
+}
+
+
+function overview(){
+  const owned=S.owned.length,total=allItems().length;
+  const xpNeed=1000+(S.level||1)*250, xpPct=Math.min(100,Math.round(((S.xp||0)/xpNeed)*100));
+  return '<div class="grid">'+
+  '<div class="menuFeature"><h3>🏠 Central do Operador</h3><p>Aqui você controla sua coleção e preparação: compre equipamentos na Loja, monte o Arsenal, personalize o personagem, organize o Inventário, acompanhe Missões e veja suas estatísticas no Perfil.</p></div>'+
+  '<div class="card"><b>👤 Perfil</b><div class="itemMeta">Nível '+S.level+' • '+(S.stats?.kills||0)+' eliminações</div><button onclick="openProfile()">ABRIR PERFIL</button></div>'+
+  '<div class="card"><b>🎯 Missões</b><div class="itemMeta">Acompanhe objetivos, progresso, conquistas e recompensas.</div><button onclick="openMissions()">VER MISSÕES</button></div>'+
+  '<div class="card"><b>⚙️ Opções</b><div class="itemMeta">Gráficos, FPS, sensibilidade, som, música, vibração e sombras.</div><button onclick="openSettings()">CONFIGURAR</button></div>'+
+  '<div class="card"><b>🎒 Inventário</b><div class="itemMeta">'+owned+' itens adquiridos de '+total+'.</div><button onclick="renderPanel(\'vault\')">ABRIR INVENTÁRIO</button></div>'+
+  '<div class="card"><b>🔫 Arsenal</b><div class="itemMeta">Escolha e equipe sua arma principal.</div><button onclick="renderPanel(\'weapons\')">ABRIR ARSENAL</button></div>'+
+  '<div class="card"><b>🎨 Personalização</b><div class="itemMeta">Personagens, skins e equipamentos visuais.</div><button onclick="renderPanel(\'custom\')">PERSONALIZAR</button></div>'+
+  '<div class="card"><b>🛒 Loja</b><div class="itemMeta">Ofertas e itens para expandir sua coleção.</div><button onclick="renderPanel(\'shop\')">ABRIR LOJA</button></div>'+
+  '<div class="menuFeature"><b>⚡ NÍVEL '+S.level+'</b><div class="itemMeta">'+(S.xp||0)+' / '+xpNeed+' XP</div><div class="progress" style="margin-top:8px"><i style="width:'+xpPct+'%"></i></div></div>'+
+  '</div>';
+}
+
+function customizationItems(){return [...(CATALOG.personagens||[]),...(CATALOG.skins||[]),...(CATALOG.itens||[])];}
+function renderCustomization(category){
+  const cats=[['Tudo','all'],['Personagens','characters'],['Skins','skins'],['Itens','items']];
+  let b='<div class="subtabs">'+cats.map(c=>'<button class="subtab '+(category===c[1]?'active':'')+'" onclick="renderPanel(\'custom\',\''+c[1]+'\')">'+c[0]+'</button>').join('')+'</div>';
+  let arr=customizationItems();
+  if(category==='characters')arr=CATALOG.personagens||[];
+  if(category==='skins')arr=CATALOG.skins||[];
+  if(category==='items')arr=CATALOG.itens||[];
+  b+='<div class="grid">'+(arr.length?arr.map(x=>card(x,'shop')).join(''):'<div class="empty">Nenhum item nesta categoria.</div>')+'</div>';
+  return b;
+}
+
+function renderPanel(type,category){
+  window.currentPanel=type; category=category||'all';
+  const names={shop:'🛒 Loja',vault:'🎒 Inventário',weapons:'🔫 Arsenal',custom:'🎨 Personalização',overview:'🏠 Central'};
+  let b='<h2>'+names[type]+'</h2>';
+  if(type==='overview') b+=overview();
+  else if(type==='vault'){const owned=allItems().filter(x=>isOwned(x.id));b+='<div class="grid">'+(owned.length?owned.map(x=>card(x,'vault')).join(''):'<div class="empty">Seu inventário está vazio.</div>')+'</div>';}
+  else if(type==='custom') b+=renderCustomization(category);
+  else if(type==='shop'){b+=subtabBar('shop',category);const arr=(CATALOG.ofertas||[]).filter(x=>categoryMatches(x,category));b+='<div class="grid">'+(arr.length?arr.map(x=>card(x,'shop')).join(''):'<div class="empty">Nenhuma oferta disponível.</div>')+'</div>';}
+  else if(type==='weapons'){b+=subtabBar('weapons',category);const arr=(CATALOG.armas||[]).filter(x=>categoryMatches(x,category));b+='<div class="grid">'+(arr.length?arr.map(x=>card(x,'shop')).join(''):'<div class="empty">Nenhuma arma nesta categoria.</div>')+'</div>';}
+  $('panelBody').innerHTML=b; $('panel').classList.remove('hidden');
+}
+
+function openPanel(type){
+  const map={Loja:'shop',Inventário:'vault',Arsenal:'weapons',Personalização:'custom'};
+  renderPanel(map[type]||'overview','all');
+}
+
+function syncEquipmentToGame(){
+  const w=findItem(S.equipped.arma);
+  if(w){
+    if(w.id==='smg_viper'||w.id==='smg_comet') state.weapon='SMG';
+    else if(w.id==='shotgun_titan') state.weapon='Shotgun';
+    else state.weapon='Rifle';
+    S.weapon=state.weapon;
+  }
+}
+function startGame(mode){try{if(!window.THREE){return bzStartupMessage('Motor 3D não carregou','Recarregue o jogo para tentar carregar a biblioteca gráfica novamente.')}syncEquipmentToGame();S.mode=mode;save();$('modePanel').classList.add('hidden');$('lobby').classList.add('hidden');$('game').classList.remove('hidden');$('game3d').innerHTML='';makeWorld($('game3d'));toast('Primeira pessoa — '+mode);if(mode==='Online')setTimeout(()=>startOnlineSession(),120)}catch(err){console.error('BattleZone game start:',err);$('game')?.classList.add('hidden');$('lobby')?.classList.remove('hidden');bzStartupMessage('Erro ao abrir a partida','O cenário 3D não conseguiu ser criado no Chrome.')}}
+function buttonDown(el){el.classList.add('active')}function buttonUp(el){el.classList.remove('active')}
+function weaponProfile(){
+  if(state.weapon==='SMG')return {damage:18,speed:110,life:1.5,count:1,spread:.018,color:0x7fd7ff,recoil:.045,mag:40};
+  if(state.weapon==='Shotgun')return {damage:11,speed:62,life:.9,count:8,spread:.11,color:0xffc04a,recoil:.11,mag:8};
+  return {damage:34,speed:92,life:1.7,count:1,spread:.008,color:0xffd35a,recoil:.07,mag:30};
+}
+function shoot(){
+  if(state.reloading)cancelReload();if(state.healing)cancelHeal();
+  if(S.ammo<=0){toast('Sem munição');stopShooting();return}
+  S.ammo--;S.score++;$('ammo').textContent=S.ammo;save();if(!camera)return;
+  const profile=weaponProfile(),origin=camera.getWorldPosition(new THREE.Vector3()),baseDir=new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion).normalize();
+  for(let n=0;n<profile.count;n++){
+    const dir=baseDir.clone();
+    if(profile.spread){const right=new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion),up=new THREE.Vector3(0,1,0).applyQuaternion(camera.quaternion);dir.addScaledVector(right,(Math.random()-.5)*profile.spread).addScaledVector(up,(Math.random()-.5)*profile.spread).normalize()}
+    const p=new THREE.Mesh(new THREE.SphereGeometry(state.weapon==='Shotgun'?.055:.045,6,6),new THREE.MeshBasicMaterial({color:profile.color}));
+    p.position.copy(origin).add(dir.clone().multiplyScalar(.75));scene.add(p);projectiles.push({m:p,dir,speed:profile.speed,life:profile.life,damage:profile.damage,id:++shotSerial,weapon:state.weapon});
+  }
+  // Recuo reduzido e acumulado apenas como offset temporário.
+  const reducedRecoil=profile.recoil*0.30;
+  state.recoilTarget=Math.min(.20,state.recoilTarget+reducedRecoil);
+  state.recoilVel=Math.min(5,state.recoilVel+reducedRecoil*4);
+  state.recoil=Math.min(.20,state.recoil+reducedRecoil);
+  if(window._onlineShoot)window._onlineShoot();
+  camera.rotation.x=state.pitch-state.recoil;
+  if(muzzleFlash){muzzleFlash.scale.setScalar(state.weapon==='Shotgun'?1.8:1);muzzleFlash.visible=true;clearTimeout(window.muzzleTimer);window.muzzleTimer=setTimeout(()=>{if(muzzleFlash)muzzleFlash.visible=false},55)}
+}
+function weaponDamage(){return weaponProfile().damage}
+function updateProjectiles(dt){
+  for(let i=projectiles.length-1;i>=0;i--){
+    const p=projectiles[i];if(!p?.m){removeProjectile(i);continue}
+    const m=p.m,old=m.position.clone(),step=p.dir.clone().multiplyScalar(p.speed*dt),ray=new THREE.Raycaster(old,p.dir,0,step.length());
+    const solids=scene.children.filter(o=>o?.userData?.solid&&o.geometry);
+    const wallHit=ray.intersectObjects(solids,false)[0]||null;
+    let targetHit=null,targetObj=null;
+    for(const t of targets||[]){
+      if(!t?.alive||!t.g)continue;
+      const hits=ray.intersectObject(t.g,true);
+      if(hits.length&&(!targetHit||hits[0].distance<targetHit.distance)){targetHit=hits[0];targetObj=t;}
+    }
+    if(wallHit&&(!targetHit||wallHit.distance<=targetHit.distance)){
+      impactFx(wallHit.point,false);removeProjectile(i);continue;
+    }
+    if(targetHit&&targetObj){
+      const part=targetHit.object.userData.hitPart||'body',mult=Number(targetHit.object.userData.hitMultiplier)||1;
+      const dealt=Number(p.damage)||0;targetObj.hp=Math.max(0,targetObj.hp-dealt*mult);
+      S.stats.damage=(S.stats.damage||0)+dealt*mult;S.missions.damage=(S.missions.damage||0)+dealt*mult;S.stats.hits=(S.stats.hits||0)+1;
+      impactFx(targetHit.point,part==='head');toast(part==='head'?'HEADSHOT! -'+Math.round(dealt*mult):'-'+Math.round(dealt*mult));
+      if(targetObj.hp<=0){targetObj.alive=false;scene.remove(targetObj.g);state.match.kills++;state.match.streak=(state.match.streak||0)+1;S.stats.kills++;S.stats.bestStreak=Math.max(S.stats.bestStreak,state.match.streak);updateMissions('kills');gainXP(part==='head'?100:60);S.gold+=25;addKillFeed('☠️ Você eliminou um inimigo');sound(760,.09);if(targets.filter(t=>t.alive&&t.bot).length===0&&state.mode!=='Treinamento')endMatch(true,'Todos os inimigos foram eliminados');}
+      removeProjectile(i);continue;
+    }
+    m.position.add(step);p.life-=dt;if(p.life<=0)removeProjectile(i);
+  }
+  aiTick(dt);lootTick();zoneTick(dt);abilityTick(dt);updateMinimap();updateGameHud();
+}
+
+function removeProjectile(i){const p=projectiles[i];if(!p)return;scene.remove(p.m);p.m.geometry.dispose();p.m.material.dispose();projectiles.splice(i,1)}
+function impactFx(pos,enemy){const g=new THREE.SphereGeometry(enemy?.09:.07,6,5),mat=new THREE.MeshBasicMaterial({color:enemy?0xff4b4b:0xffc04a});const s=new THREE.Mesh(g,mat);s.position.copy(pos);scene.add(s);setTimeout(()=>{scene.remove(s);g.dispose();mat.dispose()},90)}
+function startShooting(){
+  if(state.shooting)return;
+  // Guarda exatamente a posição da mira antes do primeiro tiro.
+  state.savedAimPitch=state.pitch;
+  state.hasSavedAim=true;
+  state.recoil=0;state.recoilTarget=0;state.recoilVel=0;
+  state.shooting=true;shoot();
+  if(state.weapon==='Rifle'||state.weapon==='SMG'){
+    clearInterval(window.fireTimer);const rate=state.weapon==='SMG'?75:120;
+    window.fireTimer=setInterval(()=>{if(state.shooting)shoot()},rate);
+  }
+}
+function stopShooting(){state.shooting=false;clearInterval(window.fireTimer)}
+function sprint(){if(state.crouch)state.crouch=false;state.sprint=!state.sprint;toast(state.sprint?'Corrida ON':'Corrida OFF')}function jump(){if(!state.grounded)return;cancelHeal();state.grounded=false;state.vy=7.2;toast('Salto')}
+function crouch(){state.crouch=!state.crouch;if(state.crouch)state.sprint = true;toast(state.crouch?'Agachado':'Em pé')}
+function reload(){
+  if(state.reloading||S.ammo>=weaponProfile().mag)return;
+  state.shooting=false;
+  clearInterval(window.fireTimer);
+  const maxMag=weaponProfile().mag;
+  state.reloading=true;
+  state.reloadProgress=0;
+  let bar=$('.usebar'),i=bar.querySelector('i');
+  bar.style.display='block';
+  i.style.width='0%';
+  let st=performance.now();
+  clearInterval(window.reloadTimer);
+  window.reloadTimer=setInterval(()=>{
+    let p=Math.min(1,(performance.now()-st)/950);
+    state.reloadProgress=p;
+    i.style.width=(p*100)+'%';
+    if(p>=1){
+      clearInterval(window.reloadTimer);
+      state.reloading=false;
+      state.reloadProgress=0;
+      S.ammo=maxMag;
+      $('ammo').textContent=maxMag;
+      save();
+      bar.style.display='none';
+      toast('Arma pronta');
+    }
+  },30);
+}
+function cancelReload(){
+  if(!state.reloading)return;
+  clearInterval(window.reloadTimer);
+  state.reloading=false;
+  $('.usebar').style.display='none';
+  toast('Recarga cancelada');
+}
+function heal(){state.shooting=false;clearInterval(window.fireTimer);if(state.healing)return;if(S.hp>=100)return toast('Vida cheia');stopShooting();state.healing=true;let bar=$('.usebar'),i=bar.querySelector('i');bar.style.display='block';i.style.width='0%';let st=performance.now();clearInterval(window.healTimer);window.healTimer=setInterval(()=>{let p=Math.min(1,(performance.now()-st)/1200);i.style.width=(p*100)+'%';if(p>=1){clearInterval(window.healTimer);state.healing=false;S.hp=Math.min(100,S.hp+35);$('hp').textContent=S.hp;save();bar.style.display='none';toast('Kit usado')}},30)}function cancelHeal(){if(!state.healing)return;clearInterval(window.healTimer);state.healing=false;$('.usebar').style.display='none';toast('Cura cancelada')}
+function swap(){if(state.reloading)cancelReload();if(state.healing)cancelHeal();stopShooting();state.weapon=state.weapon==='Rifle'?'SMG':(state.weapon==='SMG'?'Shotgun':'Rifle');S.weapon=state.weapon;const newMax=weaponProfile().mag;if(S.ammo>newMax)S.ammo=newMax;$('ammo').textContent=S.ammo;save();if(weaponGroup){weaponGroup.rotation.z=-.12;setTimeout(()=>{if(weaponGroup)weaponGroup.rotation.z=0},220)};toast('Equipado: '+state.weapon)}function aim(){state.aiming=!state.aiming;camera.fov=state.aiming?52:72;camera.updateProjectionMatrix();if(weaponGroup){weaponGroup.position.z=state.aiming?-0.46:-0.62;weaponGroup.scale.setScalar(state.aiming?.88:1)}$('.cross').classList.toggle('ads',state.aiming);toast(state.aiming?'Mira aproximada':'Mira normal')}
+// ANALÓGICO — sistema do Blackout Strike Mobile
+let joy={x:0,y:0},joyActive=false,joyId=null;
+const joystick=$('.joystick'),stick=joystick.querySelector('.stick');
+
+function joyMove(e){
+  const r=joystick.getBoundingClientRect();
+  const cx=r.left+r.width/2, cy=r.top+r.height/2;
+  let dx=e.clientX-cx, dy=e.clientY-cy;
+  const max=Math.max(1,(r.width/2)-5);
+  const d=Math.hypot(dx,dy);
+  if(d>max){dx*=max/d;dy*=max/d}
+  stick.style.transform=`translate(${dx}px,${dy}px)`;
+  joy.x=Math.max(-1,Math.min(1,dx/max));
+  joy.y=Math.max(-1,Math.min(1,dy/max));
+}
+
+function joyDown(e){
+  if(joyActive)return;
+  e.preventDefault();
+  joyActive=true;
+  joyId=e.pointerId;
+  try{joystick.setPointerCapture(e.pointerId)}catch(_){}
+  joyMove(e);
+}
+
+function joyPointerMove(e){
+  if(!joyActive || e.pointerId!==joyId)return;
+  e.preventDefault();
+  joyMove(e);
+}
+
+function joyUp(e){
+  if(!joyActive)return;
+  if(e && e.pointerId!=null && joyId!==e.pointerId)return;
+  joyActive=false;
+  joyId=null;
+  joy={x:0,y:0};
+  stick.style.transform='translate(0,0)';
+  try{joystick.releasePointerCapture?.(e?.pointerId)}catch(_){}
+}
+
+joystick.addEventListener('pointerdown',joyDown,{passive:false});
+joystick.addEventListener('pointermove',joyPointerMove,{passive:false});
+joystick.addEventListener('pointerup',joyUp,{passive:false});
+joystick.addEventListener('pointercancel',joyUp,{passive:false});
+joystick.addEventListener('lostpointercapture',joyUp,{passive:false});
+
+// look: right side drag, excludes action buttons
+(()=>{const z=$('.lookZone');let on=false,lx=0,ly=0;z.addEventListener('pointerdown',e=>{on=true;lx=e.clientX;ly=e.clientY;z.setPointerCapture?.(e.pointerId);e.preventDefault()},{passive:false});z.addEventListener('pointermove',e=>{if(!on)return;let dx=e.clientX-lx,dy=e.clientY-ly;lx=e.clientX;ly=e.clientY;state.yaw-=dx*.006;state.pitch=Math.max(-1.35,Math.min(1.35,state.pitch-dy*.006));if(player)player.rotation.y=state.yaw;e.preventDefault()},{passive:false});['pointerup','pointercancel','lostpointercapture'].forEach(ev=>z.addEventListener(ev,e=>{on=false}))})();
+const bindAction=(selector,down,up)=>{const b=document.querySelector(selector);if(!b)return;b.addEventListener('pointerdown',e=>{e.preventDefault();try{b.setPointerCapture?.(e.pointerId)}catch(_){}buttonDown(b);down?.(e)},{passive:false});b.addEventListener('pointerup',e=>{buttonUp(b);up?.(e)},{passive:false});b.addEventListener('pointercancel',e=>{buttonUp(b);up?.(e)});b.addEventListener('lostpointercapture',()=>buttonUp(b))};
+bindAction('#game .shoot',startShooting,stopShooting);bindAction('#game .actions .act:nth-child(2)',reload);bindAction('#game .actions .act:nth-child(3)',jump);bindAction('#game .actions .act:nth-child(4)',swap);bindAction('#game .actions .act:nth-child(5)',sprint);bindAction('#game .actions .act:nth-child(6)',crouch);
+const keys={};addEventListener('keydown',e=>{let k=e.key.toLowerCase();keys[k]=true;if(k==='shift')state.sprint = true;if(k===' ')jump();if(k==='r')reload();if(k==='f')heal();if(k==='q')swap();if(k==='c')crouch();if(k==='escape')closePanel();if(k==='e')aim()});addEventListener('keyup',e=>{let k=e.key.toLowerCase();keys[k]=false;if(k==='shift')state.sprint = false;});addEventListener('resize',()=>{if(camera&&renderer){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)}});if(window.THREE)lobby3d();else window.addEventListener('battlezone-three-ready',()=>lobby3d(),{once:true});
+</script>
+<script>
+/* ===================== BATTLEZONE COMPLETE SYSTEMS ===================== */
+(function(){
+  const oldStart=window.startGame, oldMake=window.makeWorld, oldShoot=window.shoot;
+  S.stats=S.stats||{matches:0,wins:0,losses:0,kills:0,headshots:0,damage:0,shots:0,hits:0,bestStreak:0,played:0};
+  S.daily=S.daily||{last:'',claimed:false};
+  S.missions=S.missions||{kills:0,shots:0,wins:0,damage:0};
+  S.achievements=S.achievements||[];
+  S.settings=Object.assign({quality:'Alta',fps:60,sfx:true,music:true,vibration:true,sensitivity:1,shadows:true,weather:true},S.settings||{});
+  S.characterSkills=S.characterSkills||{};
+  save();
+
+  const MISSION_LIST=[
+    ['first_blood','Primeiro Sangue','Elimine 1 inimigo','kills',1,120],
+    ['sharpshooter','Atirador','Acerte 15 disparos','shots',15,180],
+    ['victory','Vitória','Vença 1 partida','wins',1,300],
+    ['damage','Demolidor','Cause 1000 de dano','damage',1000,350],
+    ['hunter','Caçador','Elimine 10 inimigos','kills',10,600]
+  ];
+  const ACH=[
+    ['firstkill','Primeira Baixa','Consiga sua primeira eliminação',()=>S.stats.kills>=1],
+    ['headhunter','Caçador de Cabeças','Faça 5 headshots',()=>S.stats.headshots>=5],
+    ['veteran','Veterano','Jogue 10 partidas',()=>S.stats.matches>=10],
+    ['survivor','Sobrevivente','Vença uma partida',()=>S.stats.wins>=1],
+    ['arsenal','Arsenal Completo','Possua 10 itens',()=>S.owned.length>=10]
+  ];
+  function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+  function showOverlay(id,html){const el=$(id);el.innerHTML=html;el.classList.remove('hidden')}
+  function hideOverlay(id){$(id)?.classList.add('hidden')}
+  window.openProfile=function(){
+    syncLobbyInfo();
+    const st=S.stats, xpNeed=1000+S.level*250, pct=Math.min(100,Math.round((S.xp/xpNeed)*100));
+    showOverlay('profileOverlay',`<div class="fullCard"><button class="close" onclick="hideOverlay('profileOverlay')">✕</button><h2>👤 Perfil do Operador</h2><div class="twoCol"><div class="statBox"><div class="muted">NÍVEL</div><b>${S.level}</b><div class="progress"><i style="width:${pct}%"></i></div><div class="muted">${S.xp}/${xpNeed} XP</div></div><div class="statBox"><div class="muted">MOEDAS</div><b>🪙 ${S.gold}</b><br>💎 ${S.diamonds}</div></div><div class="twoCol" style="margin-top:10px">${[['Partidas',st.matches],['Vitórias',st.wins],['Derrotas',st.losses],['Eliminações',st.kills],['Headshots',st.headshots],['Dano',Math.round(st.damage)],['Precisão',st.shots?Math.round(st.hits/st.shots*100)+'%':'0%'],['Melhor sequência',st.bestStreak]].map(x=>`<div class="statBox"><div class="muted">${x[0]}</div><b>${x[1]}</b></div>`).join('')}</div><h3>⚡ Equipamento</h3><div class="listRow"><span>🔫 ${esc(findItem(S.equipped.arma)?.name||'Rifle Aurora')}</span><span class="rarity">EQUIPADO</span></div><div class="listRow"><span>🧑 ${esc(findItem(S.equipped.personagem)?.name||'Raven')}</span><span class="rarity">EQUIPADO</span></div><div class="listRow"><span>🎨 ${esc(findItem(S.equipped.skin)?.name||'Sem skin')}</span><span class="rarity">VISUAL</span></div></div>`)
+  };
+  window.openMissions=function(){
+    syncLobbyInfo();
+    const rows=MISSION_LIST.map(m=>{const val=Math.min(m[4],S.missions[m[3]]||0),done=val>=m[4];return `<div class="listRow"><div><b>${m[1]}</b><div class="muted">${m[2]}</div><div class="progress" style="width:210px;margin-top:5px"><i style="width:${Math.round(val/m[4]*100)}%"></i></div><div class="muted">${val}/${m[4]}</div></div><button class="${done?'primaryBtn':''}" ${done?'':'disabled'} onclick="claimMission('${m[0]}')">${done?'RESGATAR +'+m[5]:'EM ANDAMENTO'}</button></div>`}).join('');
+    showOverlay('missionsOverlay',`<div class="fullCard"><button class="close" onclick="hideOverlay('missionsOverlay')">✕</button><h2>🎯 Missões e Desafios</h2>${rows}<h3>🏅 Conquistas</h3><button class="miniBtn" onclick="openAchievements()">VER CONQUISTAS</button></div>`)
+  };
+  window.claimMission=function(id){if(!S.claimedMissions)S.claimedMissions=[];if(S.claimedMissions.includes(id))return toast('Já resgatada');const m=MISSION_LIST.find(x=>x[0]===id);if(!m)return;if((S.missions[m[3]]||0)<m[4])return;S.claimedMissions.push(id);S.gold+=m[5];gainXP(Math.round(m[5]*1.5));save();sync();syncLobbyInfo();toast('Missão concluída!');openMissions()};
+  window.openAchievements=function(){const rows=ACH.map(a=>{const done=S.achievements.includes(a[0])||a[3]();return `<div class="listRow"><span>🏅 <b>${a[1]}</b><div class="muted">${a[2]}</div></span><span>${done?'✅':'🔒'}</span></div>`}).join('');showOverlay('achOverlay',`<div class="fullCard"><button class="close" onclick="hideOverlay('achOverlay')">✕</button><h2>🏆 Conquistas</h2>${rows}</div>`)};
+  window.openSettings=function(){showOverlay('settingsOverlay',`<div class="fullCard"><button class="close" onclick="hideOverlay('settingsOverlay')">✕</button><h2>⚙️ Configurações</h2><div class="listRow"><span>Qualidade gráfica</span><select id="setQuality"><option>Baixa</option><option>Media</option><option selected>Alta</option></select></div><div class="listRow"><span>FPS</span><select id="setFPS"><option>30</option><option selected>60</option></select></div><div class="listRow"><span>Sensibilidade</span><input id="setSens" type="range" min="0.5" max="2" step="0.1" value="${S.settings.sensitivity}"></div><div class="listRow"><span>Som</span><button class="miniBtn" onclick="toggleSetting('sfx')">${S.settings.sfx?'🔊 ON':'🔇 OFF'}</button></div><div class="listRow"><span>Música</span><button class="miniBtn" onclick="toggleSetting('music')">${S.settings.music?'🎵 ON':'🔇 OFF'}</button></div><div class="listRow"><span>Vibração</span><button class="miniBtn" onclick="toggleSetting('vibration')">${S.settings.vibration?'📳 ON':'📴 OFF'}</button></div><div class="listRow"><span>Sombras</span><button class="miniBtn" onclick="toggleSetting('shadows')">${S.settings.shadows?'ON':'OFF'}</button></div><button class="primaryBtn" onclick="saveSettings()">SALVAR CONFIGURAÇÕES</button></div>`)};
+  window.toggleSetting=function(k){S.settings[k]=!S.settings[k];openSettings()};
+  window.saveSettings=function(){S.settings.quality=$('setQuality').value;S.settings.fps=Number($('setFPS').value);S.settings.sensitivity=Number($('setSens').value);save();toast('Configurações salvas');hideOverlay('settingsOverlay')};
+  window.hideOverlay=hideOverlay;
+
+  function gainXP(n){S.xp+=n;let need=1000+S.level*250;while(S.xp>=need){S.xp-=need;S.level++;S.gold+=100;need=1000+S.level*250;toast('⬆️ Nível '+S.level+'!');}save()}
+  function sound(freq=440,dur=.06){if(!S.settings.sfx)return;try{const A=window.AudioContext||window.webkitAudioContext;if(!window._ac)window._ac=new A();const c=window._ac,o=c.createOscillator(),g=c.createGain();o.frequency.value=freq;g.gain.value=.025;o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+dur)}catch(e){}}
+  window.addKillFeed=function(t){const f=$('killfeed');if(!f)return;const d=document.createElement('div');d.className='feed';d.textContent=t;f.prepend(d);setTimeout(()=>d.remove(),3200)};
+  function updateMissions(key,val=1){S.missions[key]=(S.missions[key]||0)+val;checkAchievements();save()}
+  function checkAchievements(){ACH.forEach(a=>{if(!S.achievements.includes(a[0])&&a[3]()){S.achievements.push(a[0]);S.gold+=150;toast('🏆 Conquista: '+a[1]);}});save()}
+
+  // Daily reward.
+  const today=new Date().toISOString().slice(0,10);if(S.daily.last!==today){S.daily.last=today;S.daily.claimed=false;save()}
+  window.claimDaily=function(){if(S.daily.claimed)return toast('Bônus diário já coletado');S.daily.claimed=true;S.gold+=250;S.diamonds+=1;gainXP(100);save();sync();syncLobbyInfo();toast('🎁 Bônus diário: +250 ouro +1 diamante')}
+
+  // Extend equipment effects and character abilities.
+  function charAbility(){const id=S.equipped.personagem;return {raven:'impulso',nova:'escudo',kai:'corrida',maya:'cura',blaze:'resistencia',specter:'camuflagem',atlas:'escudoPesado',luna:'velocidade',viper:'veneno',zero:'foco'}[id]||'impulso'}
+  window.useAbility=function(){const a=charAbility();if(state.abilityCd>0)return toast('Habilidade recarregando');state.abilityCd=12;if(a==='cura'){S.hp=Math.min(100,S.hp+45)}else if(a==='escudo'||a==='escudoPesado'){S.shield=Math.min(100,S.shield+(a==='escudoPesado'?50:35))}else if(a==='corrida'||a==='velocidade'){state.sprint = true;setTimeout(()=>state.sprint = false,4500)}else if(a==='foco'){state.aiming=true}else if(a==='impulso'){state.vy=9;state.grounded=false}else if(a==='camuflagem'){state.invisibleUntil=performance.now()+5000}else if(a==='resistencia'){state.damageReduction=.5;setTimeout(()=>state.damageReduction=1,5000)}else if(a==='veneno'){state.poisonShots=10}toast('⚡ '+a.toUpperCase());sound(660,.12);save()}
+
+  // Improve weapon profiles with all catalog weapons.
+  window.weaponProfile=function(){
+    const id=S.equipped.arma||'rifle_aurora';
+    const p={
+      rifle_aurora:{name:'Rifle Aurora',damage:34,head:2.25,rate:120,mag:30,speed:92,life:1.7,count:1,spread:.008,recoil:.07,color:0xffd35a},
+      smg_viper:{name:'SMG Viper',damage:18,head:2.0,rate:75,mag:40,speed:110,life:1.5,count:1,spread:.018,recoil:.045,color:0x7fd7ff},
+      shotgun_titan:{name:'Escopeta Titan',damage:11,head:1.8,rate:700,mag:8,speed:62,life:.9,count:8,spread:.11,recoil:.11,color:0xffc04a},
+      sniper_eclipse:{name:'Sniper Eclipse',damage:95,head:2.4,rate:900,mag:5,speed:180,life:2.3,count:1,spread:.001,recoil:.16,color:0xbca7ff},
+      pistola_nova:{name:'Pistola Nova',damage:28,head:2.1,rate:260,mag:15,speed:105,life:1.7,count:1,spread:.012,recoil:.035,color:0xffffff},
+      lmg_bastion:{name:'LMG Bastion',damage:25,head:2.1,rate:115,mag:60,speed:88,life:1.8,count:1,spread:.025,recoil:.09,color:0xff9b3d},
+      ar_kraken:{name:'AR Kraken',damage:40,head:2.25,rate:145,mag:35,speed:100,life:1.8,count:1,spread:.01,recoil:.075,color:0x72e0a5},
+      dmr_phantom:{name:'DMR Phantom',damage:64,head:2.3,rate:360,mag:12,speed:145,life:2,count:1,spread:.003,recoil:.1,color:0xd9d9ff},
+      smg_comet:{name:'SMG Comet',damage:15,head:2,rate:55,mag:45,speed:118,life:1.4,count:1,spread:.022,recoil:.04,color:0x5ce1ff},
+      launcher_ion:{name:'Lançador Ion',damage:120,head:1,rate:1200,mag:1,speed:45,life:3,count:1,spread:0,recoil:.18,color:0xff62d0}
+    };return p[id]||p.rifle_aurora;
+  };
+
+  // Patch original functions for the full game loop.
+  window.startGame=function(mode){
+    if(oldStart)oldStart(mode);state.match={mode,started:performance.now(),kills:0,streak:0,looted:0,knocked:false};state.abilityCd=0;state.damageReduction=1;state.invisibleUntil=0;state.poisonShots=0;S.hp=100;S.shield=50;S.stats.matches++;S.stats.played++;save();
+    setTimeout(()=>setupMatch(mode),50);
+  };
+  function setupMatch(mode){
+    if($('objective'))$('objective').textContent=mode==='Battle Royale Solo'?'🏆 Seja o último sobrevivente':'🎯 Objetivo: elimine os inimigos e complete a missão';
+    if($('weaponName'))$('weaponName').textContent=weaponProfile().name;
+    if($('weaponStats'))$('weaponStats').textContent='Dano '+weaponProfile().damage+' • Mag '+weaponProfile().mag;
+    state.mode=mode;state.matchStart=performance.now();state.nextBot=0;state.nextLoot=0;state.botShots=[];state.loot=[];state.weather=0;state.zone={r:110,shrink:0};
+    if(window.setupEnhancedWorld)window.setupEnhancedWorld();
+    updateGameHud();
+  }
+
+  function updateGameHud(){if($('hp'))$('hp').textContent=Math.max(0,Math.round(S.hp));if($('shield'))$('shield').textContent=Math.max(0,Math.round(S.shield));if($('ammo'))$('ammo').textContent=S.ammo;if($('alive'))$('alive').textContent=(targets?targets.filter(t=>t.alive).length:0)+1;if($('weaponName'))$('weaponName').textContent=weaponProfile().name}
+  function hurtPlayer(dmg,source='Inimigo'){if(state.match?.knocked)return;dmg*=state.damageReduction||1;let sh=Math.min(S.shield,dmg);S.shield-=sh;dmg-=sh;S.hp-=dmg;S.stats.damageTaken=(S.stats.damageTaken||0)+dmg;if($('damageFlash')){$('damageFlash').style.opacity=.28;setTimeout(()=>$('damageFlash').style.opacity=0,120)};sound(120,.08);updateGameHud();if(S.hp<=0)knockPlayer(source);save()}
+  window.knockPlayer=function(source){state.match.knocked=true;state.shooting=false;clearInterval(window.fireTimer);$('knock').style.display='flex';let n=8;$('knockTimer').textContent='Reviva em '+n+'s';clearInterval(window.knockTimer);window.knockTimer=setInterval(()=>{n--;$('knockTimer').textContent='Reviva em '+Math.max(0,n)+'s';if(n<=0){clearInterval(window.knockTimer);endMatch(false,'Você foi eliminado por '+source)}},1000)};
+  window.revivePlayer=function(){if(!state.match?.knocked)return;$('knock').style.display='none';state.match.knocked=false;S.hp=60;S.shield=20;placePlayerSafe();updateGameHud();toast('Revive realizado');}
+  function endMatch(win,reason){if(state.match.ended)return;state.match.ended=true;S.stats[win?'wins':'losses']++;if(win){gainXP(850);S.gold+=320}else gainXP(120);const time=Math.round((performance.now()-state.match.started)/1000);showOverlay('postOverlay',`<div class="fullCard"><h2>${win?'🏆 VITÓRIA':'💀 FIM DE PARTIDA'}</h2><p class="muted">${esc(reason||'Partida encerrada')}</p><div class="postGrid"><div class="statBox"><div class="muted">ELIMINAÇÕES</div><b>${state.match.kills}</b></div><div class="statBox"><div class="muted">DANO</div><b>${Math.round(S.stats.damage)}</b></div><div class="statBox"><div class="muted">TEMPO</div><b>${time}s</b></div><div class="statBox"><div class="muted">XP</div><b>+${win?850:120}</b></div><div class="statBox"><div class="muted">OURO</div><b>+${win?320:0}</b></div><div class="statBox"><div class="muted">MODO</div><b>${esc(S.mode)}</b></div></div><div style="margin-top:14px"><button class="primaryBtn" onclick="closePostAndReplay()">JOGAR NOVAMENTE</button> <button class="miniBtn" onclick="backToLobby()">LOBBY</button></div></div>`);save();sync()}
+  window.closePostAndReplay=function(){hideOverlay('postOverlay');startGame(S.mode)};
+  window.backToLobby=function(){hideOverlay('postOverlay');$('game').classList.add('hidden');$('lobby').classList.remove('hidden');lobby3d();}
+
+  // Enhanced world: city, industrial, gas station, bridge, river, trees, loot and more bots.
+  window.setupEnhancedWorld=function(){
+    if(!scene)return;
+    // Remove prior generated target objects and projectiles.
+    for(const t of targets||[]){if(t.g&&t.g.parent)scene.remove(t.g)}targets=[];projectiles=[];
+    // Add structures and landmarks.
+    function box(x,y,z,w,h,d,c,solid=true){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color:c,roughness:.75}));m.position.set(x,y,z);m.userData.solid=solid;scene.add(m);return m}
+    for(let i=0;i<28;i++){let x=(Math.random()-.5)*200,z=(Math.random()-.5)*190;if(Math.abs(x)<18&&Math.abs(z)<25)continue;let w=5+Math.random()*9,h=3+Math.random()*12,d=5+Math.random()*9;box(x,h/2,z,w,h,d,[0x6c7180,0x795f4d,0x53656e,0x80705c][i%4])}
+    // Gas station
+    box(45,2,-25,18,4,12,0x4b5158);box(45,5,-25,20,1,14,0xff9f00);for(let x of [39,45,51])box(x,3,-20,1,6,1,0xd6d6d6)
+    // Warehouse
+    box(-45,5,-45,25,10,20,0x4b4f58);box(-45,3,-34,12,6,1,0x222a33)
+    // Bridge and river
+    box(0,0,-78,80,.5,18,0x2f3a48,false);const water=new THREE.Mesh(new THREE.PlaneGeometry(80,26),new THREE.MeshStandardMaterial({color:0x1c5575,metalness:.2,roughness:.3}));water.rotation.x=-Math.PI/2;water.position.set(0,.02,-92);water.userData.water=true;scene.add(water)
+    // Vehicles as cover
+    for(let i=0;i<10;i++){let x=(Math.random()-.5)*150,z=(Math.random()-.5)*130;box(x,.55,z,5,1.1,2.2,i%2?0x9b3e39:0x303b48)}
+    // Bots
+    const count=state.mode==='Online'?0:(state.mode==='Treinamento'?6:(state.mode==='CS Ranqueada'?8:18));
+    for(let i=0;i<count;i++)createBot(i);
+    placePlayerSafe();
+    if(playerAvatar){playerAvatar.visible=false;} if(weaponGroup){weaponGroup.visible=true;}
+    // Loot crates
+    for(let i=0;i<22;i++)createLoot();
+    if(S.settings.weather){setWeather(['☀️ Dia claro','🌧️ Chuva leve','🌫️ Neblina','🌇 Pôr do sol'][Math.floor(Math.random()*4)])}
+  };
+  const BOT_CHAR_VARIANTS = [
+    {name:'Assalto', shirt:0x9e3d45, pants:0x20252b, boots:0x17191d, vest:0x4b5158, accent:0xff6b55, skin:0xc68e6e},
+    {name:'Tático', shirt:0x3e6ea1, pants:0x202b31, boots:0x14181b, vest:0x35485a, accent:0x4fa3ff, skin:0xc68e6e},
+    {name:'Pesado', shirt:0x6b554b, pants:0x28231f, boots:0x151515, vest:0x555d64, accent:0xf0a23b, skin:0xb8795e},
+    {name:'Flanqueador', shirt:0x6b4d7c, pants:0x20222b, boots:0x17171b, vest:0x40364b, accent:0xb878ff, skin:0xd09a78},
+    {name:'Urbano', shirt:0x566574, pants:0x25272b, boots:0x17191d, vest:0x3f444b, accent:0x7ee0d2, skin:0xc98f6e}
+  ];
+  function botMat(c,r=.82,m=0){return new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m})}
+  function botBox(w,h,d,m){return new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m)}
+  function botHit(m,ref,part='body',mult=1){m.userData.hitPart=part;m.userData.hitMultiplier=mult;m.userData.targetRef=ref;return m}
+  function buildBotHumanoid(ref,variantIndex){
+    const v=BOT_CHAR_VARIANTS[Math.abs(variantIndex||0)%BOT_CHAR_VARIANTS.length],g=new THREE.Group();
+    const torso=botBox(.66,.82,.36,botMat(v.shirt));torso.position.y=1.18;botHit(torso,ref,'body',1);g.add(torso);
+    const vest=botBox(.72,.48,.40,botMat(v.vest,.65,.15));vest.position.set(0,1.24,-.015);botHit(vest,ref,'body',1);g.add(vest);
+    const neck=new THREE.Mesh(new THREE.CylinderGeometry(.105,.12,.16,8),botMat(v.skin));neck.position.y=1.68;botHit(neck,ref);g.add(neck);
+    const head=new THREE.Mesh(new THREE.SphereGeometry(.29,12,10),botMat(v.skin,.9));head.position.y=1.91;botHit(head,ref,'head',2.2);g.add(head);
+    const helmet=new THREE.Mesh(new THREE.SphereGeometry(.31,12,8,0,Math.PI*2,0,Math.PI*.55),botMat(v.vest,.5,.12));helmet.position.y=2.02;botHit(helmet,ref,'head',2.2);g.add(helmet);
+    const visor=botBox(.30,.065,.035,botMat(v.accent,.35,.25));visor.position.set(0,1.96,-.275);botHit(visor,ref,'head',2.2);g.add(visor);
+    const armL=new THREE.Group(),armR=new THREE.Group();armL.position.set(-.46,1.48,0);armR.position.set(.46,1.48,0);
+    const ul=botBox(.22,.54,.22,botMat(v.shirt));ul.position.y=-.27;const ur=ul.clone();
+    const fl=botBox(.19,.45,.19,botMat(v.skin));fl.position.y=-.75;const fr=fl.clone();
+    const hl=new THREE.Mesh(new THREE.SphereGeometry(.11,8,6),botMat(v.skin));hl.position.y=-1;const hr=hl.clone();
+    [ul,fl,hl].forEach(m=>botHit(m,ref));[ur,fr,hr].forEach(m=>botHit(m,ref));armL.add(ul,fl,hl);armR.add(ur,fr,hr);g.add(armL,armR);
+    const legL=new THREE.Group(),legR=new THREE.Group();legL.position.set(-.20,.79,0);legR.position.set(.20,.79,0);
+    const tl=botBox(.25,.58,.25,botMat(v.pants));tl.position.y=-.29;const tr=tl.clone();
+    const sl=botBox(.22,.55,.22,botMat(v.pants));sl.position.y=-.83;const sr=sl.clone();
+    const bl=botBox(.24,.16,.42,botMat(v.boots,.7,.1));bl.position.set(0,-1.12,-.08);const br=bl.clone();
+    [tl,sl,bl,tr,sr,br].forEach(m=>botHit(m,ref));legL.add(tl,sl,bl);legR.add(tr,sr,br);g.add(legL,legR);
+    const backpack=botBox(.42,.58,.20,botMat(v.vest,.75,.05));backpack.position.set(0,1.22,.25);botHit(backpack,ref);g.add(backpack);
+    const shL=botBox(.28,.14,.28,botMat(v.accent,.55,.15));shL.position.set(-.46,1.50,0);const shR=shL.clone();shR.position.x=.46;botHit(shL,ref);botHit(shR,ref);g.add(shL,shR);
+    g.userData.botCharacter={torso,head,helmet,armL,armR,legL,legR,backpack,phase:Math.random()*Math.PI*2,lastHp:ref.hp};
+    g.traverse(o=>{if(o.isMesh){o.userData.targetRef=ref;if(!o.userData.hitPart)o.userData.hitPart='body';if(!o.userData.hitMultiplier)o.userData.hitMultiplier=1}});
+    return g;
+  }
+  function animateBotHumanoid(ref,dt,attack=false){
+    const c=ref.g?.userData?.botCharacter;if(!c)return;const now=performance.now(),moving=(ref.speedNow||0)>.15,phase=c.phase+now*.001*(moving?8:2),s=Math.sin(phase),s2=Math.sin(phase+Math.PI);
+    const stride=(moving?1:.12)*Math.min(1,(ref.speedNow||0)/5.5);c.legL.rotation.x=s*stride*.8;c.legR.rotation.x=s2*stride*.8;c.armL.rotation.x=s2*stride*.55;c.armR.rotation.x=s*stride*.55;c.torso.rotation.x=moving?-.05*stride:0;
+    if(attack){const a=Math.sin(Math.min(1,(now-(ref.lastMelee||0))/230)*Math.PI);c.armL.rotation.x=-1.15*a;c.armR.rotation.x=-.25*a;c.torso.rotation.x=-.10*a}
+    if(ref.hp<c.lastHp)c.torso.rotation.z=-.08;c.lastHp=ref.hp;
+  }
+
+  function createBot(i){
+    const pt=randomFreePoint(18,player?.position.x||0,player?.position.z||0),x=pt.x,z=pt.z;
+    const g=new THREE.Group();
+    const ref={g,hp:100,maxHp:100,alive:true,bot:true,ai:Math.random(),lastMelee:0,cover:0,botSpeed:4.25,
+      personality:['aggressive','defensive','flanker','support'][i%4],lastKnownX:x,lastKnownZ:z,lastSeen:0,alert:true,
+      strafe:Math.random()<.5?-1:1,squad:i%4,meleeRetreat:0,speedNow:0,variant:i%BOT_CHAR_VARIANTS.length};
+    const visual=buildBotHumanoid(ref,i);ref.visual=visual;ref.body=visual.userData.botCharacter.torso;ref.head=visual.userData.botCharacter.head;
+    g.add(visual);g.position.set(x,0,z);g.userData.target=true;g.userData.bot=true;scene.add(g);targets.push(ref);return ref;
+  }
+  function createLoot(){const types=['ammo','med','armor','weapon','grenade'];let type=types[Math.floor(Math.random()*types.length)],m=new THREE.Mesh(new THREE.BoxGeometry(.65,.65,.65),new THREE.MeshStandardMaterial({color:type==='weapon'?0x8c6cff:type==='med'?0x58d17b:type==='armor'?0x4e8eea:type==='grenade'?0xe56d45:0xffc04a,emissive:0x111111}));m.position.set((Math.random()-.5)*170,.5,(Math.random()-.5)*150);m.userData.loot=type;scene.add(m);state.loot.push({m,type,used:false})}
+  function setWeather(label){$('weatherTag').textContent=label;if(label.includes('Chuva')){scene.fog=new THREE.FogExp2(0x6c7c87,.012)}else if(label.includes('Neblina'))scene.fog=new THREE.FogExp2(0x98a0a6,.018);else scene.fog=null}
+  window.setWeather=setWeather;
+
+  // IA básica dos bots: aproximação. O dano é aplicado somente pelo sistema de combate corpo a corpo (smartBots).
+  const oldAnimate=window.animate;
+  function aiTick(dt){
+    return; // IA antiga desativada: smartBots é o único controlador dos bots.
+    if(!player||!state.match||state.match.ended)return;
+    const now=performance.now();
+    for(const t of targets||[]){
+      if(!t?.alive||!t.bot)continue;
+      const dx=player.position.x-t.g.position.x,dz=player.position.z-t.g.position.z,dist=Math.hypot(dx,dz)||1;
+      const ang=Math.atan2(dx,dz);t.g.rotation.y=ang;t.speedNow=0;
+      if(dist<100){
+        t.lastKnownX=player.position.x;t.lastKnownZ=player.position.z;t.alert=true;
+        if(dist>2.25){
+          const speed=t.botSpeed||4.25;const str=(t.strafe||1)*Math.sin(now/330+(t.squad||0))*Math.min(1,dist/12);
+          const nx=t.g.position.x+Math.sin(ang)*speed*dt+Math.cos(ang)*str*.35*dt;
+          const nz=t.g.position.z+Math.cos(ang)*speed*dt-Math.sin(ang)*str*.35*dt;
+          const moved=moveWithCollision(t.g,nx,nz,.55);t.speedNow=moved?speed:0;
+        }else if(now-(t.lastMelee||0)>700){
+          t.lastMelee=now;
+          const hit=Math.random()<.72;
+          if(hit)uzDamagePlayer(18+Math.random()*10,'Bot corpo a corpo');
+        }
+      }
+      animateBotHumanoid(t,dt,now-(t.lastMelee||0)<260);
+    }
+  }
+
+
+  const oldUpdateProjectiles=window.updateProjectiles;
+  window.updateProjectiles=function(dt){oldUpdateProjectiles(dt);aiTick(dt);lootTick();zoneTick(dt);abilityTick(dt);updateMinimap()}
+  function lootTick(){if(!state.loot||!player)return;let nearest=null,nd=3;for(const l of state.loot){if(l.used)continue;const d=l.m.position.distanceTo(player.position);if(d<nd){nd=d;nearest=l}}if(nearest){$('lootPrompt').style.display='block'}else $('lootPrompt').style.display='none';if(nearest&&state.pick){state.pick=false;nearest.used=true;scene.remove(nearest.m);state.match.looted++;if(nearest.type==='ammo'){S.ammo=Math.min(weaponProfile().mag,S.ammo+Math.ceil(weaponProfile().mag/2))}else if(nearest.type==='med'){S.hp=Math.min(100,S.hp+30)}else if(nearest.type==='armor'){S.shield=Math.min(100,S.shield+40)}else if(nearest.type==='grenade'){S.grenades=(S.grenades||1)+1}else if(nearest.type==='weapon'){const choices=CATALOG.armas;const w=choices[Math.floor(Math.random()*choices.length)];S.owned.includes(w.id)||S.owned.push(w.id);S.equipped.arma=w.id;toast('🔫 Loot: '+w.name)}save();updateGameHud();}}
+  function zoneTick(dt){if(state.mode!=='Battle Royale Solo'||!state.zone)return;state.zone.r=Math.max(25,state.zone.r-dt*.025);const d=Math.hypot(player.position.x,player.position.z);if(d>state.zone.r)hurtPlayer(2*dt,'Zona')}
+  function abilityTick(dt){state.abilityCd=Math.max(0,(state.abilityCd||0)-dt);if(state.poisonShots>0)state.poisonShots=Math.max(0,state.poisonShots-dt*2);}
+  function updateMinimap(){const mm=$('minimap');if(!mm||!player)return;mm.querySelectorAll('.miniEnemy,.miniLoot').forEach(e=>e.remove());for(const t of targets||[]){if(!t.alive)continue;const x=50+(t.g.position.x-player.position.x)*.25,y=50+(t.g.position.z-player.position.z)*.25;if(x>0&&x<100&&y>0&&y<100){const d=document.createElement('span');d.className='miniDot miniEnemy';d.style.left=x+'%';d.style.top=y+'%';mm.appendChild(d)}}}
+
+  // Override shoot to collect stats and support explosion launcher.
+  window.shoot=function(){
+    const p=weaponProfile();if(state.reloading)cancelReload();if(state.healing)cancelHeal();if(S.ammo<=0){toast('Sem munição');stopShooting();return}S.ammo--;S.stats.shots++;$('ammo').textContent=S.ammo;const origin=camera.getWorldPosition(new THREE.Vector3()),baseDir=new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion).normalize();for(let n=0;n<p.count;n++){const dir=baseDir.clone();if(p.spread){const r=new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion),u=new THREE.Vector3(0,1,0).applyQuaternion(camera.quaternion);dir.addScaledVector(r,(Math.random()-.5)*p.spread).addScaledVector(u,(Math.random()-.5)*p.spread).normalize()}const m=new THREE.Mesh(new THREE.SphereGeometry(p.name==='Lançador Ion'?.11:.045,6,6),new THREE.MeshBasicMaterial({color:p.color}));m.position.copy(origin).add(dir.clone().multiplyScalar(.75));scene.add(m);projectiles.push({m,dir,speed:p.speed,life:p.life,damage:p.damage,id:++shotSerial,weapon:p.name,explosive:p.name==='Lançador Ion'}); }state.recoilTarget=Math.min(.22,state.recoilTarget+p.recoil*.3);sound(170+(Math.random()*80),.04);if(muzzleFlash){muzzleFlash.visible=true;clearTimeout(window.muzzleTimer);window.muzzleTimer=setTimeout(()=>muzzleFlash&&(muzzleFlash.visible=false),55)};save();}
+
+  // Patch projectile handling for stats, explosions and eliminations.
+  window.updateProjectiles=function(dt){
+    for(let i=projectiles.length-1;i>=0;i--){const p=projectiles[i],m=p.m,old=m.position.clone(),step=p.dir.clone().multiplyScalar(p.speed*dt),ray=new THREE.Raycaster(old,p.dir,0,step.length());let targetHit=null,targetObj=null;for(const t of targets||[]){if(!t.alive)continue;const h=ray.intersectObject(t.g,true);if(h.length&&(!targetHit||h[0].distance<targetHit.distance)){targetHit=h[0];targetObj=t}}const solid=scene.children.filter(o=>o.userData?.solid);const wh=ray.intersectObjects(solid,false)[0];if(wh&&(!targetHit||wh.distance<=targetHit.distance)){if(p.explosive)explodeAt(wh.point);removeProjectile(i);continue}if(targetHit){const part=targetHit.object.userData.hitPart||'body',mult=targetHit.object.userData.hitMultiplier||1,d=p.damage*mult;targetObj.hp-=d;S.stats.damage+=d;S.missions.damage=(S.missions.damage||0)+d;S.stats.hits++;if(part==='head'){S.stats.headshots++;toast('🎯 HEADSHOT -'+Math.round(d))}else toast('-'+Math.round(d));if(targetObj.hp<=0){targetObj.alive=false;scene.remove(targetObj.g);state.match.kills++;state.match.streak++;S.stats.kills++;S.stats.bestStreak=Math.max(S.stats.bestStreak,state.match.streak);updateMissions('kills');gainXP(part==='head'?100:60);S.gold+=25;addKillFeed('☠️ Você eliminou um inimigo');sound(760,.09);if(targets.filter(t=>t.alive).length===0&&state.mode!=='Treinamento')endMatch(true,'Todos os inimigos foram eliminados')}removeProjectile(i);continue}m.position.add(step);p.life-=dt;if(p.life<=0)removeProjectile(i)}aiTick(dt);lootTick();zoneTick(dt);abilityTick(dt);updateMinimap();updateGameHud();}
+  function explodeAt(pos){for(const t of targets||[]){const d=t.g.position.distanceTo(pos);if(d<7&&t.alive){const dealt=Math.max(0,120*(1-d/7));t.hp-=dealt;S.stats.damage+=dealt;if(t.hp<=0){t.alive=false;scene.remove(t.g);state.match.kills++;S.stats.kills++;updateMissions('kills');}}}impactFx(pos,false);toast('💥 EXPLOSÃO')}
+
+  // Extend action bindings with grenade, pickup, ability.
+  setTimeout(()=>{bindAction('#game .actions .act:nth-child(9)',()=>{if((S.grenades||1)<=0)return toast('Sem granadas');S.grenades--;const dir=new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion);const pos=camera.getWorldPosition(new THREE.Vector3()).add(dir.multiplyScalar(5));explodeAt(pos)},null);bindAction('#game .actions .act:nth-child(10)',()=>{state.pick=true},null)},100);
+
+  // Daily reward shortcut in lobby via brand long press is not needed; add to profile.
+  const origProfile=openProfile;window.openProfile=function(){origProfile();setTimeout(()=>{const c=$('profileOverlay')?.querySelector('.fullCard');if(c)c.innerHTML+=`<button class="primaryBtn" onclick="claimDaily()">🎁 COLETAR BÔNUS DIÁRIO</button>`},0)};
+
+  // Animate day/night lighting and weather.
+  let dayT=0;setInterval(()=>{if(!scene||!state.match)return;dayT+=.003;const v=.5+.5*Math.sin(dayT);scene.background?.setRGB(.25+.25*v,.32+.25*v,.4+.2*v)},100);
+})();
+</script>
+<script id="ultimate-systems">
+/* ===================== BATTLEZONE ULTIMATE EXPANSION ===================== */
+(function(){
+  const U={};
+  S.ultimate=S.ultimate||{};
+  Object.assign(S.ultimate,{rank:S.ultimate.rank||'Bronze I',rankPoints:S.ultimate.rankPoints||0,rankWins:S.ultimate.rankWins||0,dailyStreak:S.ultimate.dailyStreak||0,season:S.ultimate.season||1,clan:S.ultimate.clan||null,friends:S.ultimate.friends||['RavenBot','NovaBot'],tournamentWins:S.ultimate.tournamentWins||0,attachments:S.ultimate.attachments||{},vehicles:S.ultimate.vehicles||{},battlePass:S.ultimate.battlePass||0});
+  S.stats=Object.assign({matches:0,wins:0,losses:0,kills:0,headshots:0,damage:0,shots:0,hits:0,bestStreak:0,played:0,damageTaken:0,revives:0},S.stats||{});
+  S.settings=Object.assign({quality:'Alta',fps:60,sfx:true,music:true,vibration:true,sensitivity:1,shadows:true,weather:true,dayNight:true,autoPickup:true,showMinimap:true},S.settings||{});
+  S.ultimateEvents=S.ultimateEvents||[];
+  save();
+
+  function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+  function overlay(id,body){const e=$(id);if(!e)return;e.innerHTML='<div class="fullCard">'+body+'</div>';e.classList.remove('hidden')}
+  function close(id){$(id)?.classList.add('hidden')}
+  function uToast(t){toast(t);}
+  function money(c){return c==='diamonds'?'💎':'🪙'}
+
+  /* ---------- SOCIAL / CLAN / TOURNAMENT ---------- */
+  window.uzOpenSocial=function(){
+    const rows=S.ultimate.friends.map((f,i)=>`<div class="listRow"><span>👤 <b>${esc(f)}</b><div class="uz-small"><span class="uz-socialOnline">● online</span> • nível ${8+i}</div></span><button class="miniBtn" onclick="uzToast('Convite enviado para ${esc(f)}')">CONVIDAR</button></div>`).join('');
+    overlay('uzSocial',`<button class="close" onclick="closeUz('uzSocial')">✕</button><h2>👥 Amigos e Esquadrão</h2><div class="uz-grid4"><div class="statBox"><div class="muted">ONLINE</div><b>${S.ultimate.friends.length}</b></div><div class="statBox"><div class="muted">CLÃ</div><b>${S.ultimate.clan?esc(S.ultimate.clan):'Sem clã'}</b></div><div class="statBox"><div class="muted">TEMPORADA</div><b>${S.ultimate.season}</b></div><div class="statBox"><div class="muted">RANK</div><b class="uz-rank">${esc(S.ultimate.rank)}</b></div></div><h3>Amigos</h3>${rows}<button class="primaryBtn" onclick="uzAddFriend()">➕ ADICIONAR AMIGO</button>`);
+  };
+  window.uzAddFriend=function(){const n='Player'+Math.floor(100+Math.random()*900);S.ultimate.friends.push(n);save();uToast('Amigo '+n+' adicionado');uzOpenSocial()};
+  window.uzOpenClan=function(){
+    overlay('uzClan',`<button class="close" onclick="closeUz('uzClan')">✕</button><h2>🛡️ Clã</h2><div class="statBox"><b>${S.ultimate.clan?esc(S.ultimate.clan):'Nenhum clã'}</b><div class="muted">Bônus de clã: +5% XP • +3% moedas</div></div><div class="listRow"><span>👥 Membros</span><b>${S.ultimate.clan?4:0}/20</b></div><div class="listRow"><span>🏆 Pontos do clã</span><b>${S.ultimate.clan?1250:0}</b></div><button class="primaryBtn" onclick="uzJoinClan()">${S.ultimate.clan?'GERENCIAR CLÃ':'CRIAR/ENTRAR EM CLÃ'}</button>`);
+  };
+  window.uzJoinClan=function(){S.ultimate.clan=S.ultimate.clan||'BATTLE WARRIORS';save();uToast('🛡️ Clã ativo: '+S.ultimate.clan);uzOpenClan()};
+  window.uzOpenTournament=function(){
+    const can=S.stats.kills>=3;
+    overlay('uzTournament',`<button class="close" onclick="closeUz('uzTournament')">✕</button><h2>🏆 Torneios</h2><div class="statBox"><b>TORNEIO DE ELIMINAÇÃO</b><div class="muted">4 partidas • recompensa: 2.000 🪙 + 10 💎</div><div class="progress" style="margin-top:8px"><i style="width:${Math.min(100,(S.ultimate.tournamentWins/4)*100)}%"></i></div></div><div class="listRow"><span>Vitórias no torneio</span><b>${S.ultimate.tournamentWins}/4</b></div><button class="primaryBtn" onclick="uzStartTournament()" ${can?'':'disabled'}>${can?'ENTRAR NO TORNEIO':'FAÇA 3 ELIMINAÇÕES PRIMEIRO'}</button>`);
+  };
+  window.uzStartTournament=function(){close('uzTournament');startGame('Torneio de Eliminação');uToast('🏆 Torneio iniciado!')};
+  window.closeUz=close;window.uzToast=uToast;
+
+  /* ---------- DAILY / BATTLE PASS / ECONOMY ---------- */
+  window.uzClaimDaily=function(){
+    const day=new Date().toISOString().slice(0,10);if(S.daily?.last===day)return uToast('Bônus diário já coletado');S.daily=S.daily||{};S.daily.last=day;S.dailyStreak=(S.dailyStreak||0)+1;const g=150+Math.min(500,S.dailyStreak*50);S.gold+=g;S.ultimate.battlePass=Math.min(100,(S.ultimate.battlePass||0)+2);save();sync();uToast('🎁 +'+g+' moedas • +2 Passe');
+  };
+  window.uzOpenLoadout=function(){
+    const at=['Mira Holo','Empunhadura','Carregador Rápido','Cano Estendido','Silenciador'];
+    overlay('uzLoadout',`<button class="close" onclick="closeUz('uzLoadout')">✕</button><h2>🧰 Acessórios e Loadout</h2>${at.map((a,i)=>`<div class="listRow"><span>🔧 ${a}<div class="muted">Bônus ${i===0?'+8% mira':i===1?'-10% recuo':i===2?'+25% recarga':i===3?'+15% alcance':'-25% ruído'}</div></span><button class="miniBtn" onclick="uzToggleAttachment('${i}')">${S.ultimate.attachments[i]?'EQUIPADO':'EQUIPAR'}</button></div>`).join('')}<h3>🎟️ Passe de Batalha</h3><div class="progress"><i style="width:${S.ultimate.battlePass}%"></i></div><div class="muted">${S.ultimate.battlePass}/100 níveis</div><button class="primaryBtn" onclick="uzClaimDaily()">🎁 BÔNUS DIÁRIO</button>`);
+  };
+  window.uzToggleAttachment=function(i){S.ultimate.attachments[i]=!S.ultimate.attachments[i];save();uzOpenLoadout()};
+
+  /* ---------- MODE RULES ---------- */
+  let match=null, sentinel=null, allies=[], rain=null, sun=null, moon=null, zoneRing=null, stepClock=0, lastDay=0;
+  const oldStart=window.startGame;
+  const oldUpdate=window.updateProjectiles;
+  const oldBack=window.backToLobby;
+  const oldOpenProfile=window.openProfile;
+  window.startGame=function(mode){
+    match={mode,started:performance.now(),kills:0,damage:0,round:1,roundWins:0,enemyTeam:0,allyTeam:0,wave:1,waveKills:0,roundEnded:false,ranked:mode.includes('Ranqueada'),tournament:mode.includes('Torneio'),ended:false};
+    oldStart(mode);
+    setTimeout(()=>ultimatePrepare(mode),180);
+  };
+  function ultimatePrepare(mode){
+    if(!scene||!player)return;
+    match=match||{mode,started:performance.now(),round:1,roundWins:0,wave:1};
+    // Keep a hidden sentinel so the original elimination check does not end CS/Gladiadores early.
+    if(mode==='CS Ranqueada'||mode==='Gladiadores'||mode==='Torneio de Eliminação'){
+      sentinel={alive:true,g:new THREE.Group(),ultimateSentinel:true};targets.push(sentinel);
+    }
+    if(mode==='CS Ranqueada'){
+      match.enemyTeam=4;match.allyTeam=3;pruneEnemies(4);spawnAllies(3);setRoundUI('ROUND 1 • VOCÊ 0 × 0 INIMIGO');
+    }else if(mode==='Contra Esquadrão'){
+      match.enemyTeam=4;match.allyTeam=3;pruneEnemies(4);spawnAllies(3);setRoundUI('ESQUADRÃO • 4 × 4');
+    }else if(mode==='Gladiadores'){
+      match.enemyTeam=6;pruneEnemies(6);setRoundUI('ONDA 1 • 0/6');
+    }else if(mode==='Torneio de Eliminação'){
+      match.enemyTeam=5;pruneEnemies(5);setRoundUI('TORNEIO • QUARTAS');
+    }else if(mode==='Treinamento'){
+      setRoundUI('TREINAMENTO • ALVOS INFINITOS');
+    }else if(mode==='Battle Royale Solo'||mode==='BR Ranqueada'){
+      if(targets.filter(t=>t.bot).length<10)for(let i=targets.filter(t=>t.bot).length;i<10;i++)uzCreateEnemy(i);
+      setRoundUI(mode==='BR Ranqueada'?'RANQUEADA • SOBREVIVA':'BATTLE ROYALE • SOBREVIVA');
+    }
+    buildUltimateMap();setupZoneVisual();updateUltimateHud();
+  }
+  function pruneEnemies(n){let bots=targets.filter(t=>t.bot&&t.alive);while(bots.length>n){const t=bots.pop();t.alive=false;if(t.g?.parent)scene.remove(t.g)} }
+  function uzCreateEnemy(i){
+    const pt=randomFreePoint(18,player?.position.x||0,player?.position.z||0),x=pt.x,z=pt.z;
+    const g=new THREE.Group();
+    const ref={g,hp:100,maxHp:100,alive:true,bot:true,ultimate:true,lastMelee:0,reload:0,strafe:Math.random()<.5?-1:1,coverTimer:0,squad:i%4,botSpeed:4.25,
+      personality:['aggressive','defensive','flanker','support'][i%4],lastKnownX:x,lastKnownZ:z,lastSeen:0,alert:true,meleeRetreat:0,speedNow:0,variant:i%BOT_CHAR_VARIANTS.length};
+    const visual=buildBotHumanoid(ref,i);ref.visual=visual;ref.body=visual.userData.botCharacter.torso;ref.head=visual.userData.botCharacter.head;
+    g.add(visual);g.position.set(x,0,z);g.userData.bot=true;g.userData.ultimate=true;scene.add(g);targets.push(ref);return ref;
+  }
+  function spawnAllies(n){allies=[];for(let i=0;i<n;i++){const g=new THREE.Group();const body=new THREE.Mesh(new THREE.CapsuleGeometry(.4,.9,4,8),new THREE.MeshStandardMaterial({color:0x43c58b,roughness:.8}));const head=new THREE.Mesh(new THREE.SphereGeometry(.27,10,8),new THREE.MeshStandardMaterial({color:0xc68e6e}));head.position.y=.72;g.add(body,head);g.position.set((Math.random()-.5)*20,1,10+Math.random()*15);scene.add(g);allies.push({g,hp:100,alive:true,lastShot:0,strafe:i%2?1:-1})}}
+  function setRoundUI(t){const e=$('uzRound');if(e){e.textContent=t;e.style.display='block'}if($('uzScore'))$('uzScore').style.display='block'}
+  function updateUltimateHud(){if(!$('uzScore'))return;let alive=targets.filter(t=>t.bot&&t.alive).length;$('uzScore').textContent=match?.mode==='CS Ranqueada'?`🏆 ${match.roundWins||0} × ${Math.max(0,(match.round||1)-1-(match.roundWins||0))}`:`👤 ${alive+1} • ☠️ ${match?.kills||0}`;if(match?.mode==='Battle Royale Solo'||match?.mode==='BR Ranqueada')$('uzZone').style.display='block'}
+
+  /* ---------- FULL MAP: CITY + FAVELAS + INDUSTRIAL + FOREST + WATER ---------- */
+  function buildUltimateMap(){
+    if(!scene)return;
+    const addBox=(x,y,z,w,h,d,c,solid=true)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color:c,roughness:.78}));m.position.set(x,y,z);m.userData.solid=solid;scene.add(m);return m};
+    const addTree=(x,z,s=1)=>{const t=new THREE.Group(),tr=new THREE.Mesh(new THREE.CylinderGeometry(.22*s,.34*s,2*s,7),new THREE.MeshStandardMaterial({color:0x60452f})),lf=new THREE.Mesh(new THREE.ConeGeometry(1.5*s,3.5*s,8),new THREE.MeshStandardMaterial({color:0x2f6a3a}));tr.position.y=s;lf.position.y=3*s;t.add(tr,lf);t.position.set(x,0,z);scene.add(t);};
+    const addLamp=(x,z)=>{const p=new THREE.Mesh(new THREE.CylinderGeometry(.05,.07,4,6),new THREE.MeshStandardMaterial({color:0x30343a,metalness:.7}));p.position.set(x,2,z);const l=new THREE.PointLight(0xffd27a,1.4,12);l.position.set(x,4,z);scene.add(p,l)};
+    // roads
+    addBox(0,.02,0,230,.04,9,0x20262d,false);addBox(0,.025,-48,230,.04,7,0x20262d,false);addBox(60,.03,0,8,.04,230,0x20262d,false);
+    // favela rows
+    for(let i=0;i<18;i++){const side=i%2?-1:1,x=side*(35+Math.random()*65),z=-60+i*7;const w=5+Math.random()*5,h=2.5+Math.random()*7,d=5+Math.random()*4;addBox(x,h/2,z,w,h,d,[0x6d554b,0x7a6a5c,0x566574,0x8a6c54][i%4]);}
+    // market
+    addBox(-62,3,-15,18,6,14,0x4d535d);addBox(-62,6.5,-15,19,.7,15,0xd04d38);addBox(-62,2,-7,12,4,.7,0x262d35);
+    // tower
+    addBox(72,7,-62,5,14,5,0x424850);addBox(72,15,-62,12,1,12,0x293038);addLamp(72,-62);
+    // walls / alleys
+    for(let i=0;i<10;i++)addBox(-90+i*18,1.4,-5,10,2.8,.6,0x4d4f54);
+    for(let i=0;i<24;i++)addTree((Math.random()-.5)*210,(Math.random()-.5)*190,.7+Math.random()*.6);
+    for(let i=0;i<16;i++)addLamp((Math.random()-.5)*180,(Math.random()-.5)*150);
+    // bridge/river remains from base world; add piers
+    for(let x=-30;x<=30;x+=15)addBox(x,2,-78,2,4,3,0x555b63);
+    // extra cover crates
+    for(let i=0;i<35;i++)addBox((Math.random()-.5)*190,.5,(Math.random()-.5)*170,1.5+Math.random()*2,1+Math.random()*1.2,1.5+Math.random()*2,0x5b4635);
+  }
+
+  /* ---------- WEATHER + DAY/NIGHT + VFX ---------- */
+  function weatherFX(dt){
+    if(!scene||!S.settings.weather)return;
+    if(!U.particles){U.particles=new THREE.Group();scene.add(U.particles);for(let i=0;i<120;i++){const m=new THREE.Mesh(new THREE.BoxGeometry(.015,.35,.015),new THREE.MeshBasicMaterial({color:0x9bd6ff,transparent:true,opacity:.5}));m.position.set((Math.random()-.5)*180,Math.random()*35,(Math.random()-.5)*180);U.particles.add(m)}}
+    const raining=$('weatherTag')?.textContent.includes('Chuva');U.particles.visible=!!raining;if(raining)U.particles.children.forEach(p=>{p.position.y-=dt*18;if(p.position.y<.1){p.position.y=30;p.position.x=player.position.x+(Math.random()-.5)*180;p.position.z=player.position.z+(Math.random()-.5)*180}});
+    if(U.sun){const t=(performance.now()%120000)/120000*Math.PI*2;U.sun.position.set(Math.cos(t)*80,Math.sin(t)*80+20,30);U.sun.intensity=.45+.8*Math.max(0,Math.sin(t));}
+  }
+  function setupLighting(){if(!scene||U.sun)return;U.sun=new THREE.DirectionalLight(0xffffff,1.5);U.sun.position.set(35,70,20);scene.add(U.sun);}
+
+  window.BOT_DIFFICULTY='normal';
+  window.setBotDifficulty=function(level){const v=String(level||'normal').toLowerCase();window.BOT_DIFFICULTY=['facil','normal','dificil'].includes(v)?v:'normal';uToast('🤖 IA: '+window.BOT_DIFFICULTY.toUpperCase());};
+
+  /* ---------- SMART BOTS: COVER, STRAFE, RELOAD, BURSTS ---------- */
+  function botHasLineOfSight(t){
+    if(!player||!scene||!t?.g)return false;
+    const from=t.g.position.clone(); from.y+=1.25;
+    const to=player.position.clone(); to.y+=1.0;
+    const dir=to.sub(from); const dist=dir.length(); if(dist<=0.01)return true;
+    dir.normalize();
+    const solids=scene.children.filter(o=>o?.userData?.solid===true);
+    if(!solids.length)return true;
+    const ray=new THREE.Raycaster(from,dir,0,Math.max(0,dist-.08));
+    return ray.intersectObjects(solids,false).length===0;
+  }
+  function smartBots(dt){
+    if(!player||!state.match||state.match.ended)return;
+    const now=performance.now();
+    const diff=(window.BOT_DIFFICULTY||'normal').toLowerCase();
+    const cfg={facil:{speed:3.7,attack:.48,reaction:900,cool:850},normal:{speed:4.8,attack:.68,reaction:620,cool:650},dificil:{speed:5.9,attack:.84,reaction:420,cool:480}}[diff]||{speed:4.8,attack:.68,reaction:620,cool:650};
+    const meleeRange=2.25;
+    for(const t of targets){
+      if(!t?.alive||!t.bot||t.ultimate===false)continue;
+      const dx=player.position.x-t.g.position.x,dz=player.position.z-t.g.position.z;
+      const dist=Math.hypot(dx,dz)||1;
+      const visible=botHasLineOfSight(t);
+      const hearingRange=state.sprint?24:16;
+      if(visible){
+        t.lastKnownX=player.position.x; t.lastKnownZ=player.position.z;
+        t.lastSeen=now; t.alert=true;
+      }else if(dist<hearingRange && now-(t.lastHeard||0)>800){
+        // Som dá apenas uma posição aproximada, nunca a localização exata.
+        const a=Math.random()*Math.PI*2, r=5+Math.random()*10+(state.sprint?5:0);
+        t.lastKnownX=player.position.x+Math.cos(a)*r;
+        t.lastKnownZ=player.position.z+Math.sin(a)*r;
+        t.lastHeard=now; t.alert=true;
+      }
+      const memory=visible?Infinity:4500;
+      if(!t.alert || now-(t.lastSeen||0)>memory){
+        t.alert=false; t.speedNow=0; animateBotHumanoid(t,dt,false); continue;
+      }
+      const tx=t.lastKnownX,tz=t.lastKnownZ;
+      const txd=tx-t.g.position.x,tzd=tz-t.g.position.z,targetDist=Math.hypot(txd,tzd)||1;
+      const ang=Math.atan2(txd,tzd); t.g.rotation.y=ang;
+      if(visible && dist<=meleeRange){
+        t.speedNow=0;
+        if(now-(t.lastMelee||0)>cfg.cool+Math.random()*220){
+          t.lastMelee=now;
+          const chance=cfg.attack-(dist/meleeRange)*.12;
+          if(Math.random()<chance){
+            const damage=t.personality==='aggressive'?22+Math.random()*10:17+Math.random()*9;
+            uzDamagePlayer(damage,'Bot corpo a corpo');
+            addKillFeed('🤖 Bot atacou de perto');
+          }else addKillFeed('🤖 Bot errou o ataque');
+          t.meleeRetreat=.28;
+        }
+      }else if(targetDist>1.8){
+        let speed=cfg.speed*(t.personality==='aggressive'?1.14:t.personality==='defensive'?.92:1);
+        if(t.hp<30&&t.personality!=='aggressive')speed*=.8;
+        const str=(t.strafe||1)*Math.sin(now/330+(t.squad||0))*Math.min(1,targetDist/12);
+        const nx=t.g.position.x+(txd/targetDist)*speed*dt+Math.cos(ang)*str*.35*dt;
+        const nz=t.g.position.z+(tzd/targetDist)*speed*dt-Math.sin(ang)*str*.35*dt;
+        const moved=moveWithCollision(t.g,nx,nz,.55); t.speedNow=moved?speed:0;
+        if(!visible && targetDist<2){t.alert=false;t.speedNow=0;}
+      }else{
+        t.speedNow=0;
+        if(!visible && now-(t.lastSeen||0)>1200)t.alert=false;
+      }
+      if(t.meleeRetreat>0){
+        t.meleeRetreat-=dt;
+        moveWithCollision(t.g,t.g.position.x-Math.sin(ang)*cfg.speed*.55*dt,t.g.position.z-Math.cos(ang)*cfg.speed*.55*dt,.55);
+      }
+      animateBotHumanoid(t,dt,visible && now-(t.lastMelee||0)<260);
+    }
+    for(const a of allies){
+      if(!a.alive)continue; let nearest=null,nd=999;
+      for(const t of targets){if(!t.alive)continue;const d=a.g.position.distanceTo(t.g.position);if(d<nd){nd=d;nearest=t;}}
+      if(!nearest)continue;
+      const dx=nearest.g.position.x-a.g.position.x,dz=nearest.g.position.z-a.g.position.z,ang=Math.atan2(dx,dz);
+      a.g.rotation.y=ang; const sp=4.8;
+      if(nd>2.1)moveWithCollision(a.g,a.g.position.x+Math.sin(ang)*sp*dt,a.g.position.z+Math.cos(ang)*sp*dt,.55);
+      else if(now-(a.lastMelee||0)>650){a.lastMelee=now;nearest.hp-=15+Math.random()*7;if(nearest.hp<=0){nearest.alive=false;scene.remove(nearest.g);match.kills++;uToast('🤝 Aliado eliminou um inimigo no corpo a corpo');}}
+    }
+  }
+  function moveBot(t,x,z,dt,s){if(!Number.isFinite(x)||!Number.isFinite(z))return;const dx=x-t.g.position.x,dz=z-t.g.position.z,d=Math.hypot(dx,dz)||1;if(d>1){const nx=t.g.position.x+dx/d*s*dt,nz=t.g.position.z+dz/d*s*dt;moveWithCollision(t.g,nx,nz,.55)}}
+  function uzDamagePlayer(dmg,source){if(state.match?.knocked)return;let sh=Math.min(S.shield,dmg);S.shield-=sh;dmg-=sh;S.hp-=dmg;S.stats.damageTaken=(S.stats.damageTaken||0)+dmg;if($('damageFlash')){$('damageFlash').style.opacity=.25;setTimeout(()=>$('damageFlash').style.opacity=0,100)};if(S.hp<=0&&window.knockPlayer)window.knockPlayer(source||'Inimigo');if(window.updateGameHud)updateGameHud()}
+
+  /* ---------- CS / GLADIATORS / TOURNAMENT RULES ---------- */
+  function checkSpecialMode(){
+    if(!match||match.ended)return;
+    const alive=targets.filter(t=>t.bot&&t.alive).length;
+    if(match.mode==='CS Ranqueada'&&alive===0&&!match.roundEnded){match.roundEnded=true;match.roundWins++;setRoundUI(`ROUND ${match.round} VENCIDO • ${match.roundWins} × ${match.round-1-match.roundWins}`);setTimeout(()=>{if(match.roundWins>=4)return ultimateFinish(true,'Campeão da série CS');match.round++;match.roundEnded=false;respawnRound(4);setRoundUI(`ROUND ${match.round} • ${match.roundWins} × ${match.round-1-match.roundWins}`)},1300)}
+    if(match.mode==='Gladiadores'&&alive===0&&!match.roundEnded){match.roundEnded=true;match.wave++;setTimeout(()=>{match.roundEnded=false;for(let i=0;i<Math.min(12,5+match.wave);i++)uzCreateEnemy(i+match.wave*20);setRoundUI(`ONDA ${match.wave} • elimine ${5+match.wave} inimigos`)},1100)}
+    if(match.mode==='Torneio de Eliminação'&&alive===0&&!match.roundEnded){match.roundEnded=true;match.roundWins++;setTimeout(()=>{if(match.roundWins>=3)return ultimateFinish(true,'Campeão do torneio');match.round++;match.roundEnded=false;respawnRound(5);setRoundUI(`TORNEIO • FASE ${match.round}`)},1200)}
+    if(match.mode==='Contra Esquadrão'&&alive===0&&!match.roundEnded){match.roundEnded=true;ultimateFinish(true,'Esquadrão inimigo eliminado')}
+  }
+  function respawnRound(n){for(const t of targets){if(t.g?.parent)scene.remove(t.g)}targets=[];for(let i=0;i<n;i++)uzCreateEnemy(i+match.round*10);S.hp=100;S.shield=50;S.ammo=weaponProfile().mag;state.match.knocked=false;if($('knock'))$('knock').style.display='none';updateUltimateHud()}
+  function ultimateFinish(win,reason){if(match?.ended)return;match.ended=true;if(win){S.stats.wins++;S.gold+=600;uzGainXP(1000);if(match.ranked){S.ultimate.rankPoints+=25;S.ultimate.rankWins++}if(match.tournament){S.ultimate.tournamentWins=Math.min(4,S.ultimate.tournamentWins+1);S.diamonds+=3}}else S.stats.losses++;save();sync();const time=Math.round((performance.now()-match.started)/1000);overlay('postOverlay',`<button class="close" onclick="closeUz('postOverlay')">✕</button><h2>${win?'🏆 VITÓRIA':'💀 DERROTA'}</h2><p class="muted">${esc(reason)}</p><div class="postGrid"><div class="statBox"><div class="muted">ELIMINAÇÕES</div><b>${match.kills}</b></div><div class="statBox"><div class="muted">TEMPO</div><b>${time}s</b></div><div class="statBox"><div class="muted">XP</div><b>+${win?1000:150}</b></div><div class="statBox"><div class="muted">OURO</div><b>+${win?600:0}</b></div><div class="statBox"><div class="muted">RANK</div><b>${esc(S.ultimate.rank)} • ${S.ultimate.rankPoints} RP</b></div><div class="statBox"><div class="muted">PASSE</div><b>${S.ultimate.battlePass}/100</b></div></div><button class="primaryBtn" onclick="closeUz('postOverlay');startGame('${esc(match.mode)}')">JOGAR NOVAMENTE</button> <button class="miniBtn" onclick="backToLobby()">LOBBY</button>`);}
+
+  /* ---------- VEHICLES ---------- */
+  function spawnVehicles(){if(!scene||U.vehiclesBuilt)return;U.vehiclesBuilt=true;U.vehicles=[];for(let i=0;i<5;i++){const g=new THREE.Group();const body=new THREE.Mesh(new THREE.BoxGeometry(3.5,.8,1.7),new THREE.MeshStandardMaterial({color:[0x9b3e39,0x33475a,0x7a7d3a,0x6b4b3d][i%4],metalness:.4}));const cabin=new THREE.Mesh(new THREE.BoxGeometry(1.6,.65,1.35),new THREE.MeshStandardMaterial({color:0x222831,metalness:.2,roughness:.25}));cabin.position.y=.65;g.add(body,cabin);g.position.set((Math.random()-.5)*160,.6,(Math.random()-.5)*150);scene.add(g);U.vehicles.push({g,occupied:false,speed:0})}}
+  function vehicleTick(){if(!player||!U.vehicles)return;for(const v of U.vehicles){const d=v.g.position.distanceTo(player.position);if(d<3&&!v.occupied){$('uzHint').textContent='🚗 TOQUE EM VEÍCULO PARA DIRIGIR';}if(v.occupied){v.g.position.x+=Math.sin(state.yaw)*v.speed*.016;v.g.position.z+=Math.cos(state.yaw)*v.speed*.016}}}
+  window.uzEnterVehicle=function(){if(!U.vehicles)return;let v=U.vehicles.find(x=>x.g.position.distanceTo(player.position)<3);if(!v)return uToast('Nenhum veículo próximo');v.occupied=!v.occupied;v.speed=v.occupied?7:0;uToast(v.occupied?'🚗 Veículo ocupado':'🚗 Saiu do veículo')};
+
+  /* ---------- SOUND / FOOTSTEPS / VIBRATION ---------- */
+  function tone(freq,dur,vol=.025){if(!S.settings.sfx)return;try{const A=window.AudioContext||window.webkitAudioContext;if(!window.uzAC)window.uzAC=new A();const o=window.uzAC.createOscillator(),g=window.uzAC.createGain();o.frequency.value=freq;g.gain.value=vol;o.connect(g);g.connect(window.uzAC.destination);o.start();o.stop(window.uzAC.currentTime+dur)}catch(e){}}
+  function footsteps(dt){if(!player)return;const moving=Math.hypot(joy.x,joy.y)>.15||keys.w||keys.a||keys.s||keys.d;if(moving&&state.grounded){stepClock-=dt;if(stepClock<=0){stepClock=state.sprint?.26:.48;tone(90,.035,.018);if(S.settings.vibration&&navigator.vibrate)navigator.vibrate(8)}}}
+
+  /* ---------- DAILY UI / PROFILE / SETTINGS EXTENSION ---------- */
+  const oldProfile=window.openProfile;
+  window.openProfile=function(){oldProfile?.();setTimeout(()=>{const p=$('profileOverlay')?.querySelector('.fullCard');if(p&&!p.querySelector('.ultimateProfile')){const x=document.createElement('div');x.className='ultimateProfile';x.innerHTML=`<h3>📊 Temporada ${S.ultimate.season}</h3><div class="uz-grid4"><div class="statBox"><div class="muted">RANK</div><b>${esc(S.ultimate.rank)}</b></div><div class="statBox"><div class="muted">RP</div><b>${S.ultimate.rankPoints}</b></div><div class="statBox"><div class="muted">PASSE</div><b>${S.ultimate.battlePass}</b></div><div class="statBox"><div class="muted">CLÃ</div><b>${esc(S.ultimate.clan||'—')}</b></div></div><button class="primaryBtn" onclick="uzOpenLoadout()">🧰 LOADOUT E ACESSÓRIOS</button><button class="miniBtn" onclick="uzClaimDaily()">🎁 BÔNUS DIÁRIO</button>`;p.appendChild(x)}},30)};
+  const oldSettings=window.openSettings;
+  window.openSettings=function(){oldSettings?.();setTimeout(()=>{const p=$('settingsOverlay')?.querySelector('.fullCard');if(p&&!p.querySelector('.ultimateSettings')){const x=document.createElement('div');x.className='ultimateSettings';x.innerHTML=`<h3>🎮 Controles e desempenho</h3><div class="listRow"><span>Minimapa</span><button class="miniBtn" onclick="uzToggleSetting('showMinimap')">${S.settings.showMinimap?'ON':'OFF'}</button></div><div class="listRow"><span>Ciclo dia/noite</span><button class="miniBtn" onclick="uzToggleSetting('dayNight')">${S.settings.dayNight?'ON':'OFF'}</button></div><div class="listRow"><span>Coleta automática</span><button class="miniBtn" onclick="uzToggleSetting('autoPickup')">${S.settings.autoPickup?'ON':'OFF'}</button></div><div class="listRow"><span>Vibração no passo</span><button class="miniBtn" onclick="uzToggleSetting('vibration')">${S.settings.vibration?'ON':'OFF'}</button></div>`;p.appendChild(x)}},30)};
+  window.uzToggleSetting=function(k){S.settings[k]=!S.settings[k];save();window.openSettings()};
+
+  /* ---------- MINIMAP / WEATHER / LOOP ---------- */
+  function setupZoneVisual(){
+    if(!$('uzZone'))return;
+    $('uzZone').style.display=(match&&(['Battle Royale Solo','BR Ranqueada'].includes(match.mode)))?'block':'none';
+  }
+  function uzGainXP(n){
+    S.xp=(S.xp||0)+n;
+    let need=1000+(S.level||1)*250;
+    while(S.xp>=need){S.xp-=need;S.level=(S.level||1)+1;S.gold+=100;need=1000+S.level*250;uToast('⬆️ Nível '+S.level+'!')}
+    save();sync();
+  }
+  const oldRender=window.renderPanel;
+  const oldOpenPanel=window.openPanel;
+  // Add a dedicated "Mais" style entry through the top menu without disturbing existing menu separation.
+  function updateZone(){if(!$('uzZone')||!match)return;const r=match.mode==='Battle Royale Solo'||match.mode==='BR Ranqueada'?Math.max(45,110-((performance.now()-match.started)/1000)*.04):0;$('uzZone').style.width=(r*2)+'px';$('uzZone').style.height=(r*2)+'px';$('uzZone').style.display=r?'block':'none'}
+  function updateDayNight(){if(!scene||!S.settings.dayNight)return;setupLighting();const t=(performance.now()%180000)/180000*Math.PI*2;const daylight=Math.max(.05,Math.sin(t)*.5+.5);scene.background?.setRGB(.04+.2*daylight,.07+.28*daylight,.12+.35*daylight);if(U.sun){U.sun.intensity=.25+1.3*daylight;U.sun.position.set(Math.cos(t)*80,20+Math.sin(t)*80,30)}}
+
+  const originalGlobalUpdate=window.updateProjectiles;
+  window.updateProjectiles=function(dt){
+    originalGlobalUpdate(dt);
+    try{smartBots(dt);checkSpecialMode();weatherFX(dt);updateDayNight();updateZone();vehicleTick();footsteps(dt);updateUltimateHud();}catch(e){}
+  };
+
+  const originalMake=window.makeWorld;
+  window.makeWorld=function(target){U.vehiclesBuilt=false;U.sun=null;if(U.particles){U.particles=null}originalMake(target);setTimeout(()=>{setupLighting();spawnVehicles()},40)};
+
+  // Keep world state clean when returning to lobby.
+  const originalLobby=window.backToLobby;
+  window.backToLobby=function(){match=null;allies=[];if(U.particles)U.particles.visible=false;originalLobby?.()};
+
+  // Extra keyboard shortcuts.
+  addEventListener('keydown',e=>{if(e.key.toLowerCase()==='v')uzEnterVehicle();if(e.key.toLowerCase()==='g'){const b=document.querySelector('#game .actions .act:nth-child(9)');b?.click()}if(e.key.toLowerCase()==='e'&&player){state.aiming=!state.aiming}});
+
+  // Add one more mobile action button dynamically: vehicle / ability.
+  setTimeout(()=>{
+    },250);
+
+  // Make daily reward accessible on first lobby load.
+  const dailyBtn=$('uzDaily');if(dailyBtn)dailyBtn.onclick=()=>window.uzClaimDaily?.();
+
+  window.uzUltimateReady=true;save();
+})();
+</script>
+
+<script id="auto-run-fix">
+(function(){
+  window.AUTO_RUN = true;
+
+  window.applyAutoRun = function(){
+    if(typeof state === 'undefined') return;
+    state.autoRun = true;
+    state.sprint = true;
+    state.isSprinting = true;
+  };
+
+  // Patch common movement speed variables if they exist.
+  window.getAutoRunSpeed = function(base){
+    base = Number(base) || 0.08;
+    return Math.max(base, 0.145);
+  };
+
+  // Prevent a sprint button from requiring a press/hold.
+  document.addEventListener('pointerdown', function(e){
+    const t = e.target;
+    if(t && /sprint|corr(er|ida)|run/i.test((t.id||'')+' '+(t.className||''))){
+      e.preventDefault();
+      applyAutoRun();
+    }
+  }, {passive:false});
+
+  document.addEventListener('DOMContentLoaded', function(){
+    try{ applyAutoRun(); }catch(e){}
+  });
+})();
+</script>
+
+
+<style id="auto-run-style">
+#autoRunHint{
+  position:fixed;left:50%;bottom:18px;transform:translateX(-50%);
+  z-index:9999;background:rgba(8,12,18,.82);border:1px solid #3c4c60;
+  color:#e8eef6;border-radius:10px;padding:7px 11px;font:700 11px Arial;
+  pointer-events:none;opacity:.9
+}
+</style>
+
+
+
+<script id="movement-final-safety">
+(function(){
+  function resetMovement(){
+    if(typeof joy!=='undefined'){
+      joy={x:0,y:0};
+      joyActive=false;
+      joyId=null;
+    }
+    if(typeof stick!=='undefined' && stick) stick.style.transform='translate(0,0)';
+    if(typeof keys!=='undefined'){
+      Object.keys(keys).forEach(k=>keys[k]=false);
+    }
+  }
+  window.addEventListener('blur',resetMovement);
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)resetMovement()});
+})();
+</script>
+
+
+<script id="top-buttons-final-fix">
+(function(){
+  function bindTop(){
+    const buttons=document.querySelectorAll('#uzTopMenu .uz-menuBtn');
+    const actions=[
+      ()=>window.openProfile?.(),
+      ()=>window.openMissions?.(),
+      ()=>window.openSettings?.(),
+      ()=>window.uzOpenSocial?.(),
+      ()=>window.uzOpenTournament?.(),
+      ()=>window.uzOpenClan?.(),
+      ()=>window.uzClaimDaily?.()
+    ];
+    buttons.forEach((el,i)=>{
+      if(el.dataset.topBound==='1')return;
+      el.dataset.topBound='1';
+      el.addEventListener('pointerup',e=>{
+        e.preventDefault();
+        try{actions[i]?.()}catch(err){console.error('Top button:',err)}
+      },{passive:false});
+    });
+  }
+  bindTop();
+  window.addEventListener('load',bindTop);
+  setTimeout(bindTop,300);
+  setTimeout(bindTop,1000);
+})();
+</script>
+
+
+<script id="bottom-buttons-final-bind">
+(function(){
+  function setup(){
+    document.querySelectorAll('.bottomMenuBtn').forEach(function(el){
+      el.style.pointerEvents='auto';
+      el.style.touchAction='manipulation';
+    });
+  }
+  setup();
+  window.addEventListener('load',setup);
+  setTimeout(setup,300);
+})();
+</script>
+
+
+<script id="horizontal-bottom-scroll-js">
+(function(){
+  function setup(){
+    const bar=document.querySelector('.horizontalBottomScroller');
+    if(!bar || bar.dataset.scrollReady==='1') return;
+    bar.dataset.scrollReady='1';
+    // Ensure all bottom buttons stay in one row.
+    bar.querySelectorAll('.bottomMenuBtn').forEach(b=>{
+      b.style.flex='0 0 82px';
+    });
+  }
+  setup();
+  window.addEventListener('load',setup);
+  setTimeout(setup,300);
+})();
+</script>
+
+
+<script id="profile-missions-settings-mobile-fix">
+(function(){
+  function bind(){
+    const p=document.querySelector('#uzTopMenu .bottomMenuBtn') ||
+            document.querySelector('.horizontalBottomScroller .bottomMenuBtn');
+    const buttons=document.querySelectorAll('.bottomMenuBtn');
+    buttons.forEach(function(b){
+      const txt=(b.textContent||'').toUpperCase();
+      if(txt.includes('PERFIL')) b.onclick=function(e){e.stopPropagation(); if(typeof window.openProfile==='function') window.openProfile();};
+      if(txt.includes('MISSÕES')) b.onclick=function(e){e.stopPropagation(); if(typeof window.openMissions==='function') window.openMissions();};
+      if(txt.includes('OPÇÕES') || txt.includes('CONFIG')) b.onclick=function(e){e.stopPropagation(); if(typeof window.openSettings==='function') window.openSettings();};
+    });
+  }
+  bind();
+  window.addEventListener('load',bind);
+  setTimeout(bind,300);
+  setTimeout(bind,1000);
+})();
+</script>
+
+
+<button id="fullscreenBtn" type="button" aria-label="Ativar tela cheia">⛶ Tela cheia</button>
+<script id="battlezone-fullscreen">
+(function(){
+  const btn=document.getElementById('fullscreenBtn');
+  if(!btn)return;
+  const root=document.documentElement;
+  let busy=false;
+
+  function isNativeFS(){
+    return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement);
+  }
+  function resizeGame(){
+    try{
+      const w=Math.max(1,window.innerWidth||root.clientWidth);
+      const h=Math.max(1,window.innerHeight||root.clientHeight);
+      if(typeof camera!=='undefined'&&camera){camera.aspect=w/h;camera.updateProjectionMatrix();}
+      if(typeof renderer!=='undefined'&&renderer)renderer.setSize(w,h,false);
+    }catch(e){}
+  }
+  function updateButton(){
+    const on=isNativeFS();
+    btn.textContent=on?'⛶ Sair da tela cheia':'⛶ Tela cheia';
+    btn.setAttribute('aria-label',on?'Sair da tela cheia':'Ativar tela cheia');
+  }
+  function notify(msg){
+    try{
+      if(typeof toast==='function'){toast(msg);return;}
+    }catch(e){}
+    btn.title=msg;
+    const old=btn.textContent;
+    btn.textContent='⚠️ '+msg;
+    setTimeout(()=>{updateButton();},2200);
+  }
+  async function enterNative(){
+    const targets=[root,document.body,document.getElementById('app')].filter(Boolean);
+    for(const el of targets){
+      try{
+        if(el.requestFullscreen){
+          await el.requestFullscreen({navigationUI:'hide'});
+          if(isNativeFS())return true;
+        }
+      }catch(e){}
+      try{
+        if(el.webkitRequestFullscreen){
+          el.webkitRequestFullscreen();
+          if(isNativeFS())return true;
+        }
+      }catch(e){}
+      try{
+        if(el.mozRequestFullScreen){
+          el.mozRequestFullScreen();
+          if(isNativeFS())return true;
+        }
+      }catch(e){}
+    }
+    return isNativeFS();
+  }
+  async function exitNative(){
+    try{if(document.exitFullscreen)await document.exitFullscreen();}
+    catch(e){}
+    try{if(document.webkitExitFullscreen)document.webkitExitFullscreen();}
+    catch(e){}
+    try{if(document.mozCancelFullScreen)document.mozCancelFullScreen();}
+    catch(e){}
+  }
+  async function toggleFS(){
+    if(busy)return;
+    busy=true;
+    try{
+      if(isNativeFS()){
+        await exitNative();
+      }else{
+        // Se estiver dentro de iframe, avisa o documento pai. O editor precisa
+        // permitir/implementar fullscreen para que a barra do próprio aplicativo suma.
+        try{window.parent!==window&&window.parent.postMessage({type:'battlezone-request-fullscreen'},'*');}catch(e){}
+        const ok=await enterNative();
+        if(!ok){
+          notify('O editor bloqueou a tela cheia');
+          return;
+        }
+      }
+      updateButton();
+      setTimeout(resizeGame,50);
+      setTimeout(resizeGame,250);
+    }finally{busy=false;}
+  }
+  btn.addEventListener('click',toggleFS,{passive:true});
+  ['fullscreenchange','webkitfullscreenchange','mozfullscreenchange'].forEach(ev=>
+    document.addEventListener(ev,()=>{updateButton();resizeGame();})
+  );
+  window.addEventListener('resize',resizeGame);
+  window.addEventListener('orientationchange',()=>setTimeout(resizeGame,250));
+  if(window.visualViewport)visualViewport.addEventListener('resize',resizeGame);
+  document.addEventListener('keydown',e=>{
+    if(e.key==='F11'){e.preventDefault();toggleFS();}
+    if(e.key==='Escape'&&isNativeFS())exitNative();
+  });
+  updateButton();
+  resizeGame();
+})();
+</script>
+
+
+<script id="battlezone-online">
+(function(){
+  const O={ws:null,id:null,name:'',room:'PUBLIC',remotes:new Map(),connected:false,lastSend:0,serverUrl:''};
+  window.onlineState=O;
+  function status(t){const e=$('onlineStatus');if(e)e.textContent=t}
+  window.openOnline=function(){ $('modePanel')?.classList.add('hidden'); $('onlineOverlay')?.classList.remove('hidden'); const n=$('onlineName'); if(n&&!n.value)n.value='Operador'+Math.floor(100+Math.random()*900); };
+  window.closeOnline=function(){ $('onlineOverlay')?.classList.add('hidden'); };
+  function makeRemote(id,data){
+    if(!scene)return null;
+    const g=new THREE.Group(); const avatar=makeHumanoid('bot',Number(data.variant||0)); initHumanoidAnim(avatar); g.add(avatar); g.position.set(Number(data.x)||0,0,Number(data.z)||0); g.rotation.y=Number(data.yaw)||0; g.userData.onlineId=id; g.userData.onlineName=data.name||'Jogador'; scene.add(g); return g;
+  }
+  function removeRemote(id){const r=O.remotes.get(id);if(r?.g&&scene)scene.remove(r.g);O.remotes.delete(id)}
+  function clearRemotes(){for(const id of O.remotes.keys())removeRemote(id)}
+  function handleSnapshot(players){
+    const seen=new Set();
+    for(const pl of players||[]){if(pl.id===O.id)continue;seen.add(pl.id);let r=O.remotes.get(pl.id);if(!r){r={g:makeRemote(pl.id,pl),target:{}};O.remotes.set(pl.id,r)}r.target={x:pl.x||0,z:pl.z||0,yaw:pl.yaw||0,name:pl.name||'Jogador',hp:pl.hp??100};r.g.userData.onlineName=r.target.name;}
+    for(const id of [...O.remotes.keys()])if(!seen.has(id))removeRemote(id);
+    const alive=document.getElementById('alive');if(alive)alive.textContent=(players||[]).length;
+  }
+  function connect(url,name,room){
+    if(O.ws){try{O.ws.close()}catch(e){}}
+    O.serverUrl=url;O.name=name||'Operador';O.room=(room||'PUBLIC').trim().toUpperCase().replace(/[^A-Z0-9_-]/g,'').slice(0,12)||'PUBLIC';
+    status('Conectando...');
+    let ws;try{ws=new WebSocket(url)}catch(e){status('Endereço do servidor inválido.');return}
+    O.ws=ws;
+    ws.onopen=()=>{status('Conectado. Entrando na sala '+O.room+'...');ws.send(JSON.stringify({type:'join',name:O.name,room:O.room,variant:Math.floor(Math.random()*5)}))};
+    ws.onmessage=(ev)=>{let m;try{m=JSON.parse(ev.data)}catch(e){return}
+      if(m.type==='welcome'){O.id=m.id;O.connected=true;status('Online: '+m.room+' • '+m.count+' jogador(es)');closeOnline();startGame('Online')}
+      else if(m.type==='snapshot'){handleSnapshot(m.players);}
+      else if(m.type==='hit'&&m.targetId===O.id){S.hp=Math.max(0,Number(m.hp));if($('hp'))$('hp').textContent=Math.round(S.hp);if(S.hp<=0)toast('☠️ Você foi eliminado');}
+      else if(m.type==='kill'&&m.killerId===O.id){S.score=(S.score||0)+1;toast('🎯 Eliminação +1');}
+      else if(m.type==='message')toast(m.text||'');
+      else if(m.type==='error'){status(m.message||'Erro');toast(m.message||'Erro')}
+    };
+    ws.onclose=()=>{O.connected=false;clearRemotes();status('Desconectado do servidor.');if($('game')&&!$('game').classList.contains('hidden')){toast('🌐 Conexão online encerrada');}};
+    ws.onerror=()=>status('Não foi possível conectar. Inicie o servidor e tente novamente.');
+  }
+  window.connectOnline=function(){
+    const name=$('onlineName')?.value?.trim()||'Operador';const room=$('onlineRoom')?.value?.trim()||'PUBLIC';const url=$('onlineServer')?.value?.trim()||((location.protocol==='https:'?'wss://':'ws://')+location.host);
+    connect(url,name,room);
+  };
+  window.startOnlineSession=function(){
+    if(!O.connected){toast('Conectando ao servidor online...');return}
+    state.mode='Online';state.match={mode:'Online',started:performance.now(),kills:0,streak:0,knocked:false};state.matchStart=performance.now();state.nextBot=999999;targets=[];updateGameHud();
+    if(player)player.userData.online=true;
+  };
+  function sendState(now){
+    if(!O.connected||!O.ws||O.ws.readyState!==1||!player)return;
+    if(now-O.lastSend<50)return;O.lastSend=now;
+    O.ws.send(JSON.stringify({type:'state',x:player.position.x,y:player.position.y,z:player.position.z,yaw:state.yaw||0,pitch:state.pitch||0}));
+  }
+  function updateRemotes(dt){
+    for(const r of O.remotes.values()){
+      if(!r.g||!r.target)continue;
+      const k=Math.min(1,dt*12);r.g.position.x+=(r.target.x-r.g.position.x)*k;r.g.position.z+=(r.target.z-r.g.position.z)*k;r.g.rotation.y+=(r.target.yaw-r.g.rotation.y)*k;
+      updateHumanoid(r.g.children[0],dt,Math.hypot(r.target.x-r.g.position.x,r.target.z-r.g.position.z)>0.015,3,false,false);
+    }
+  }
+  const oldAnimateOnline=window.animate;
+  window.addEventListener('battlezone-three-ready',()=>{});
+  const originalMove=window.move;
+  window.move=function(dt){originalMove(dt);if(state.mode==='Online')sendState(performance.now())};
+  // Keep the normal local animation loop and add remote interpolation through a lightweight hook.
+  const oldUpdateProjectiles=window.updateProjectiles;
+  window.updateProjectiles=function(dt){oldUpdateProjectiles(dt);if(state.mode==='Online')updateRemotes(dt)};
+  // Multiplayer shooting: server validates the hit against remote players.
+  const originalShoot=window.shoot;
+  window.shoot=function(){
+    originalShoot();
+    if(state.mode==='Online'&&O.connected&&O.ws?.readyState===1&&camera&&player){
+      const origin=camera.getWorldPosition(new THREE.Vector3()),dir=new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion).normalize();
+      O.ws.send(JSON.stringify({type:'shoot',origin:{x:origin.x,y:origin.y,z:origin.z},dir:{x:dir.x,y:dir.y,z:dir.z}}));
+    }
+  };
+  window.addEventListener('beforeunload',()=>{try{O.ws?.close()}catch(e){}});
+})();
+</script>
+</body></html>

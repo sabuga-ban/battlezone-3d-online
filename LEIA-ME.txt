@@ -1,0 +1,17 @@
+BATTLEZONE 3D — MODO ONLINE
+
+1. Instale Node.js 18+ no computador/servidor.
+2. Abra um terminal nesta pasta.
+3. Execute: npm install
+4. Execute: npm start
+5. Abra no navegador: http://localhost:8080
+
+Para duas pessoas na mesma rede, a segunda pessoa deve abrir:
+http://IP-DO-COMPUTADOR:8080
+
+No jogo, escolha Jogar > Online — Jogadores Reais.
+Use o mesmo código de sala nos dois aparelhos.
+
+Para jogar pela internet, o servidor precisa estar hospedado em um endereço público e usar WSS (WebSocket seguro) quando o site estiver em HTTPS. O campo Servidor do modo online aceita o endereço ws:// ou wss://.
+
+O servidor limita as salas a 8 jogadores, sincroniza posição/rotação e valida tiros/dano básicos no servidor.
